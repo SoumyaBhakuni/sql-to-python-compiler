@@ -1,0 +1,13 @@
+# backend/.gitignore-style entries
+backend/venv/
+backend/__pycache__/
+*.pyc
+.env
+
+# frontend/ entries
+frontend/node_modules/
+frontend/dist/
+
+# OS specific
+.DS_Store
+Thumbs.db
