@@ -57,24 +57,26 @@ Rule 40    expression -> expression DIVIDE expression
 Rule 41    expression -> qualified_id
 Rule 42    expression -> NUMBER
 Rule 43    expression -> STRING
-Rule 44    qualified_id -> IDENTIFIER DOT IDENTIFIER
-Rule 45    qualified_id -> IDENTIFIER
-Rule 46    create_stmt -> CREATE TABLE IDENTIFIER LPAREN column_defs RPAREN
-Rule 47    column_defs -> column_def
-Rule 48    column_defs -> column_defs COMMA column_def
-Rule 49    column_def -> IDENTIFIER data_type
-Rule 50    data_type -> INT
-Rule 51    data_type -> TEXT
-Rule 52    data_type -> FLOAT
-Rule 53    insert_stmt -> INSERT INTO IDENTIFIER VALUES LPAREN value_list RPAREN
-Rule 54    value_list -> expression
-Rule 55    value_list -> value_list COMMA expression
-Rule 56    drop_stmt -> DROP TABLE IDENTIFIER
-Rule 57    opt_groupby -> GROUP BY qualified_id
-Rule 58    opt_groupby -> empty
-Rule 59    opt_semicolon -> SEMICOLON
-Rule 60    opt_semicolon -> empty
-Rule 61    empty -> <empty>
+Rule 44    expression -> TRUE
+Rule 45    expression -> FALSE
+Rule 46    qualified_id -> IDENTIFIER DOT IDENTIFIER
+Rule 47    qualified_id -> IDENTIFIER
+Rule 48    create_stmt -> CREATE TABLE IDENTIFIER LPAREN column_defs RPAREN
+Rule 49    column_defs -> column_def
+Rule 50    column_defs -> column_defs COMMA column_def
+Rule 51    column_def -> IDENTIFIER data_type
+Rule 52    data_type -> INT
+Rule 53    data_type -> TEXT
+Rule 54    data_type -> FLOAT
+Rule 55    insert_stmt -> INSERT INTO IDENTIFIER VALUES LPAREN value_list RPAREN
+Rule 56    value_list -> expression
+Rule 57    value_list -> value_list COMMA expression
+Rule 58    drop_stmt -> DROP TABLE IDENTIFIER
+Rule 59    opt_groupby -> GROUP BY qualified_id
+Rule 60    opt_groupby -> empty
+Rule 61    opt_semicolon -> SEMICOLON
+Rule 62    opt_semicolon -> empty
+Rule 63    empty -> <empty>
 
 Terminals, with rules where they appear
 
@@ -83,33 +85,34 @@ ALTER                :
 AND                  : 35
 AVG                  : 13
 BETWEEN              : 
-BY                   : 57
-COMMA                : 8 48 55
+BY                   : 59
+COMMA                : 8 50 57
 COUNT                : 12
-CREATE               : 46
+CREATE               : 48
 CROSS                : 25
 DELETE               : 
 DIVIDE               : 40
-DOT                  : 44
-DROP                 : 56
+DOT                  : 46
+DROP                 : 58
 EQUALS               : 29
-FLOAT                : 52
+FALSE                : 45
+FLOAT                : 54
 FROM                 : 5
 FULL                 : 24
 GE                   : 33
-GROUP                : 57
+GROUP                : 59
 GT                   : 31
 HAVING               : 
-IDENTIFIER           : 5 20 44 44 45 46 49 53 56
+IDENTIFIER           : 5 20 46 46 47 48 51 55 58
 IN                   : 
 INNER                : 21
-INSERT               : 53
-INT                  : 50
-INTO                 : 53
+INSERT               : 55
+INT                  : 52
+INTO                 : 55
 JOIN                 : 20
 LE                   : 34
 LEFT                 : 22
-LPAREN               : 11 12 13 14 15 46 53
+LPAREN               : 11 12 13 14 15 48 55
 LT                   : 32
 MAX                  : 15
 MIN                  : 14
@@ -120,31 +123,32 @@ ON                   : 20
 OR                   : 36
 PLUS                 : 37
 RIGHT                : 23
-RPAREN               : 11 12 13 14 15 46 53
+RPAREN               : 11 12 13 14 15 48 55
 SELECT               : 5
-SEMICOLON            : 59
+SEMICOLON            : 61
 SET                  : 
 STAR                 : 6
 STRING               : 43
 SUM                  : 11
-TABLE                : 46 56
-TEXT                 : 51
+TABLE                : 48 58
+TEXT                 : 53
 TIMES                : 39
+TRUE                 : 44
 UPDATE               : 
-VALUES               : 53
+VALUES               : 55
 WHERE                : 27
 error                : 
 
 Nonterminals, with rules where they appear
 
 aggregate_func       : 10
-column_def           : 47 48
-column_defs          : 46 48
+column_def           : 49 50
+column_defs          : 48 50
 create_stmt          : 3
-data_type            : 49
+data_type            : 51
 drop_stmt            : 4
-empty                : 17 26 28 58 60
-expression           : 20 27 29 29 30 30 31 31 32 32 33 33 34 34 35 35 36 36 37 37 38 38 39 39 40 40 54 55
+empty                : 17 26 28 60 62
+expression           : 20 27 29 29 30 30 31 31 32 32 33 33 34 34 35 35 36 36 37 37 38 38 39 39 40 40 56 57
 insert_stmt          : 2
 join_item            : 18 19
 join_list            : 16 19
@@ -155,10 +159,10 @@ opt_semicolon        : 5
 opt_where            : 5
 projection_item      : 7 8
 projections          : 5 8
-qualified_id         : 9 11 12 13 14 15 41 57
+qualified_id         : 9 11 12 13 14 15 41 59
 select_stmt          : 1
 statement            : 0
-value_list           : 53 55
+value_list           : 55 57
 
 Parsing method: LALR
 
@@ -170,9 +174,9 @@ state 0
     (3) statement -> . create_stmt
     (4) statement -> . drop_stmt
     (5) select_stmt -> . SELECT projections FROM IDENTIFIER opt_joins opt_where opt_groupby opt_semicolon
-    (53) insert_stmt -> . INSERT INTO IDENTIFIER VALUES LPAREN value_list RPAREN
-    (46) create_stmt -> . CREATE TABLE IDENTIFIER LPAREN column_defs RPAREN
-    (56) drop_stmt -> . DROP TABLE IDENTIFIER
+    (55) insert_stmt -> . INSERT INTO IDENTIFIER VALUES LPAREN value_list RPAREN
+    (48) create_stmt -> . CREATE TABLE IDENTIFIER LPAREN column_defs RPAREN
+    (58) drop_stmt -> . DROP TABLE IDENTIFIER
 
     SELECT          shift and go to state 6
     INSERT          shift and go to state 7
@@ -227,8 +231,8 @@ state 6
     (8) projections -> . projections COMMA projection_item
     (9) projection_item -> . qualified_id
     (10) projection_item -> . aggregate_func
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
     (11) aggregate_func -> . SUM LPAREN qualified_id RPAREN
     (12) aggregate_func -> . COUNT LPAREN qualified_id RPAREN
     (13) aggregate_func -> . AVG LPAREN qualified_id RPAREN
@@ -250,21 +254,21 @@ state 6
 
 state 7
 
-    (53) insert_stmt -> INSERT . INTO IDENTIFIER VALUES LPAREN value_list RPAREN
+    (55) insert_stmt -> INSERT . INTO IDENTIFIER VALUES LPAREN value_list RPAREN
 
     INTO            shift and go to state 21
 
 
 state 8
 
-    (46) create_stmt -> CREATE . TABLE IDENTIFIER LPAREN column_defs RPAREN
+    (48) create_stmt -> CREATE . TABLE IDENTIFIER LPAREN column_defs RPAREN
 
     TABLE           shift and go to state 22
 
 
 state 9
 
-    (56) drop_stmt -> DROP . TABLE IDENTIFIER
+    (58) drop_stmt -> DROP . TABLE IDENTIFIER
 
     TABLE           shift and go to state 23
 
@@ -280,35 +284,35 @@ state 10
 
 state 11
 
-    (44) qualified_id -> IDENTIFIER . DOT IDENTIFIER
-    (45) qualified_id -> IDENTIFIER .
+    (46) qualified_id -> IDENTIFIER . DOT IDENTIFIER
+    (47) qualified_id -> IDENTIFIER .
 
     DOT             shift and go to state 26
-    FROM            reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    COMMA           reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    RPAREN          reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    EQUALS          reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    NEQ             reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    GT              reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    LT              reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    GE              reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    LE              reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    AND             reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    OR              reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    PLUS            reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    MINUS           reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    TIMES           reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    DIVIDE          reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    GROUP           reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    SEMICOLON       reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    $end            reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    INNER           reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    LEFT            reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    RIGHT           reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    FULL            reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    CROSS           reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    JOIN            reduce using rule 45 (qualified_id -> IDENTIFIER .)
-    WHERE           reduce using rule 45 (qualified_id -> IDENTIFIER .)
+    FROM            reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    COMMA           reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    RPAREN          reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    EQUALS          reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    NEQ             reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    GT              reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    LT              reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    GE              reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    LE              reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    AND             reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    OR              reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    PLUS            reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    MINUS           reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    TIMES           reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    DIVIDE          reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    GROUP           reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    SEMICOLON       reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    $end            reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    INNER           reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    LEFT            reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    RIGHT           reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    FULL            reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    CROSS           reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    JOIN            reduce using rule 47 (qualified_id -> IDENTIFIER .)
+    WHERE           reduce using rule 47 (qualified_id -> IDENTIFIER .)
 
 
 state 12
@@ -380,21 +384,21 @@ state 20
 
 state 21
 
-    (53) insert_stmt -> INSERT INTO . IDENTIFIER VALUES LPAREN value_list RPAREN
+    (55) insert_stmt -> INSERT INTO . IDENTIFIER VALUES LPAREN value_list RPAREN
 
     IDENTIFIER      shift and go to state 32
 
 
 state 22
 
-    (46) create_stmt -> CREATE TABLE . IDENTIFIER LPAREN column_defs RPAREN
+    (48) create_stmt -> CREATE TABLE . IDENTIFIER LPAREN column_defs RPAREN
 
     IDENTIFIER      shift and go to state 33
 
 
 state 23
 
-    (56) drop_stmt -> DROP TABLE . IDENTIFIER
+    (58) drop_stmt -> DROP TABLE . IDENTIFIER
 
     IDENTIFIER      shift and go to state 34
 
@@ -411,8 +415,8 @@ state 25
     (8) projections -> projections COMMA . projection_item
     (9) projection_item -> . qualified_id
     (10) projection_item -> . aggregate_func
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
     (11) aggregate_func -> . SUM LPAREN qualified_id RPAREN
     (12) aggregate_func -> . COUNT LPAREN qualified_id RPAREN
     (13) aggregate_func -> . AVG LPAREN qualified_id RPAREN
@@ -432,7 +436,7 @@ state 25
 
 state 26
 
-    (44) qualified_id -> IDENTIFIER DOT . IDENTIFIER
+    (46) qualified_id -> IDENTIFIER DOT . IDENTIFIER
 
     IDENTIFIER      shift and go to state 37
 
@@ -440,8 +444,8 @@ state 26
 state 27
 
     (11) aggregate_func -> SUM LPAREN . qualified_id RPAREN
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     IDENTIFIER      shift and go to state 11
 
@@ -450,8 +454,8 @@ state 27
 state 28
 
     (12) aggregate_func -> COUNT LPAREN . qualified_id RPAREN
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     IDENTIFIER      shift and go to state 11
 
@@ -460,8 +464,8 @@ state 28
 state 29
 
     (13) aggregate_func -> AVG LPAREN . qualified_id RPAREN
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     IDENTIFIER      shift and go to state 11
 
@@ -470,8 +474,8 @@ state 29
 state 30
 
     (14) aggregate_func -> MIN LPAREN . qualified_id RPAREN
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     IDENTIFIER      shift and go to state 11
 
@@ -480,8 +484,8 @@ state 30
 state 31
 
     (15) aggregate_func -> MAX LPAREN . qualified_id RPAREN
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     IDENTIFIER      shift and go to state 11
 
@@ -489,23 +493,23 @@ state 31
 
 state 32
 
-    (53) insert_stmt -> INSERT INTO IDENTIFIER . VALUES LPAREN value_list RPAREN
+    (55) insert_stmt -> INSERT INTO IDENTIFIER . VALUES LPAREN value_list RPAREN
 
     VALUES          shift and go to state 43
 
 
 state 33
 
-    (46) create_stmt -> CREATE TABLE IDENTIFIER . LPAREN column_defs RPAREN
+    (48) create_stmt -> CREATE TABLE IDENTIFIER . LPAREN column_defs RPAREN
 
     LPAREN          shift and go to state 44
 
 
 state 34
 
-    (56) drop_stmt -> DROP TABLE IDENTIFIER .
+    (58) drop_stmt -> DROP TABLE IDENTIFIER .
 
-    $end            reduce using rule 56 (drop_stmt -> DROP TABLE IDENTIFIER .)
+    $end            reduce using rule 58 (drop_stmt -> DROP TABLE IDENTIFIER .)
 
 
 state 35
@@ -515,7 +519,7 @@ state 35
     (17) opt_joins -> . empty
     (18) join_list -> . join_item
     (19) join_list -> . join_list join_item
-    (61) empty -> .
+    (63) empty -> .
     (20) join_item -> . join_type JOIN IDENTIFIER ON expression
     (21) join_type -> . INNER
     (22) join_type -> . LEFT
@@ -524,11 +528,11 @@ state 35
     (25) join_type -> . CROSS
     (26) join_type -> . empty
 
-    WHERE           reduce using rule 61 (empty -> .)
-    GROUP           reduce using rule 61 (empty -> .)
-    SEMICOLON       reduce using rule 61 (empty -> .)
-    $end            reduce using rule 61 (empty -> .)
-    JOIN            reduce using rule 61 (empty -> .)
+    WHERE           reduce using rule 63 (empty -> .)
+    GROUP           reduce using rule 63 (empty -> .)
+    SEMICOLON       reduce using rule 63 (empty -> .)
+    $end            reduce using rule 63 (empty -> .)
+    JOIN            reduce using rule 63 (empty -> .)
     INNER           shift and go to state 50
     LEFT            shift and go to state 51
     RIGHT           shift and go to state 52
@@ -551,33 +555,33 @@ state 36
 
 state 37
 
-    (44) qualified_id -> IDENTIFIER DOT IDENTIFIER .
+    (46) qualified_id -> IDENTIFIER DOT IDENTIFIER .
 
-    FROM            reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    COMMA           reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    RPAREN          reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    EQUALS          reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    NEQ             reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    GT              reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    LT              reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    GE              reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    LE              reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    AND             reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    OR              reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    PLUS            reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    MINUS           reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    TIMES           reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    DIVIDE          reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    GROUP           reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    SEMICOLON       reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    $end            reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    INNER           reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    LEFT            reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    RIGHT           reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    FULL            reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    CROSS           reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    JOIN            reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
-    WHERE           reduce using rule 44 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    FROM            reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    COMMA           reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    RPAREN          reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    EQUALS          reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    NEQ             reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    GT              reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    LT              reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    GE              reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    LE              reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    AND             reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    OR              reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    PLUS            reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    MINUS           reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    TIMES           reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    DIVIDE          reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    GROUP           reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    SEMICOLON       reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    $end            reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    INNER           reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    LEFT            reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    RIGHT           reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    FULL            reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    CROSS           reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    JOIN            reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
+    WHERE           reduce using rule 46 (qualified_id -> IDENTIFIER DOT IDENTIFIER .)
 
 
 state 38
@@ -617,17 +621,17 @@ state 42
 
 state 43
 
-    (53) insert_stmt -> INSERT INTO IDENTIFIER VALUES . LPAREN value_list RPAREN
+    (55) insert_stmt -> INSERT INTO IDENTIFIER VALUES . LPAREN value_list RPAREN
 
     LPAREN          shift and go to state 60
 
 
 state 44
 
-    (46) create_stmt -> CREATE TABLE IDENTIFIER LPAREN . column_defs RPAREN
-    (47) column_defs -> . column_def
-    (48) column_defs -> . column_defs COMMA column_def
-    (49) column_def -> . IDENTIFIER data_type
+    (48) create_stmt -> CREATE TABLE IDENTIFIER LPAREN . column_defs RPAREN
+    (49) column_defs -> . column_def
+    (50) column_defs -> . column_defs COMMA column_def
+    (51) column_def -> . IDENTIFIER data_type
 
     IDENTIFIER      shift and go to state 61
 
@@ -639,12 +643,12 @@ state 45
     (5) select_stmt -> SELECT projections FROM IDENTIFIER opt_joins . opt_where opt_groupby opt_semicolon
     (27) opt_where -> . WHERE expression
     (28) opt_where -> . empty
-    (61) empty -> .
+    (63) empty -> .
 
     WHERE           shift and go to state 65
-    GROUP           reduce using rule 61 (empty -> .)
-    SEMICOLON       reduce using rule 61 (empty -> .)
-    $end            reduce using rule 61 (empty -> .)
+    GROUP           reduce using rule 63 (empty -> .)
+    SEMICOLON       reduce using rule 63 (empty -> .)
+    $end            reduce using rule 63 (empty -> .)
 
     opt_where                      shift and go to state 64
     empty                          shift and go to state 66
@@ -660,7 +664,7 @@ state 46
     (24) join_type -> . FULL
     (25) join_type -> . CROSS
     (26) join_type -> . empty
-    (61) empty -> .
+    (63) empty -> .
 
     WHERE           reduce using rule 16 (opt_joins -> join_list .)
     GROUP           reduce using rule 16 (opt_joins -> join_list .)
@@ -671,7 +675,7 @@ state 46
     RIGHT           shift and go to state 52
     FULL            shift and go to state 53
     CROSS           shift and go to state 54
-    JOIN            reduce using rule 61 (empty -> .)
+    JOIN            reduce using rule 63 (empty -> .)
 
     join_item                      shift and go to state 67
     join_type                      shift and go to state 49
@@ -789,9 +793,9 @@ state 59
 
 state 60
 
-    (53) insert_stmt -> INSERT INTO IDENTIFIER VALUES LPAREN . value_list RPAREN
-    (54) value_list -> . expression
-    (55) value_list -> . value_list COMMA expression
+    (55) insert_stmt -> INSERT INTO IDENTIFIER VALUES LPAREN . value_list RPAREN
+    (56) value_list -> . expression
+    (57) value_list -> . value_list COMMA expression
     (29) expression -> . expression EQUALS expression
     (30) expression -> . expression NEQ expression
     (31) expression -> . expression GT expression
@@ -807,11 +811,15 @@ state 60
     (41) expression -> . qualified_id
     (42) expression -> . NUMBER
     (43) expression -> . STRING
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (44) expression -> . TRUE
+    (45) expression -> . FALSE
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     NUMBER          shift and go to state 73
     STRING          shift and go to state 74
+    TRUE            shift and go to state 75
+    FALSE           shift and go to state 76
     IDENTIFIER      shift and go to state 11
 
     value_list                     shift and go to state 70
@@ -820,47 +828,47 @@ state 60
 
 state 61
 
-    (49) column_def -> IDENTIFIER . data_type
-    (50) data_type -> . INT
-    (51) data_type -> . TEXT
-    (52) data_type -> . FLOAT
+    (51) column_def -> IDENTIFIER . data_type
+    (52) data_type -> . INT
+    (53) data_type -> . TEXT
+    (54) data_type -> . FLOAT
 
-    INT             shift and go to state 76
-    TEXT            shift and go to state 77
-    FLOAT           shift and go to state 78
+    INT             shift and go to state 78
+    TEXT            shift and go to state 79
+    FLOAT           shift and go to state 80
 
-    data_type                      shift and go to state 75
+    data_type                      shift and go to state 77
 
 state 62
 
-    (46) create_stmt -> CREATE TABLE IDENTIFIER LPAREN column_defs . RPAREN
-    (48) column_defs -> column_defs . COMMA column_def
+    (48) create_stmt -> CREATE TABLE IDENTIFIER LPAREN column_defs . RPAREN
+    (50) column_defs -> column_defs . COMMA column_def
 
-    RPAREN          shift and go to state 79
-    COMMA           shift and go to state 80
+    RPAREN          shift and go to state 81
+    COMMA           shift and go to state 82
 
 
 state 63
 
-    (47) column_defs -> column_def .
+    (49) column_defs -> column_def .
 
-    RPAREN          reduce using rule 47 (column_defs -> column_def .)
-    COMMA           reduce using rule 47 (column_defs -> column_def .)
+    RPAREN          reduce using rule 49 (column_defs -> column_def .)
+    COMMA           reduce using rule 49 (column_defs -> column_def .)
 
 
 state 64
 
     (5) select_stmt -> SELECT projections FROM IDENTIFIER opt_joins opt_where . opt_groupby opt_semicolon
-    (57) opt_groupby -> . GROUP BY qualified_id
-    (58) opt_groupby -> . empty
-    (61) empty -> .
+    (59) opt_groupby -> . GROUP BY qualified_id
+    (60) opt_groupby -> . empty
+    (63) empty -> .
 
-    GROUP           shift and go to state 82
-    SEMICOLON       reduce using rule 61 (empty -> .)
-    $end            reduce using rule 61 (empty -> .)
+    GROUP           shift and go to state 84
+    SEMICOLON       reduce using rule 63 (empty -> .)
+    $end            reduce using rule 63 (empty -> .)
 
-    opt_groupby                    shift and go to state 81
-    empty                          shift and go to state 83
+    opt_groupby                    shift and go to state 83
+    empty                          shift and go to state 85
 
 state 65
 
@@ -880,14 +888,18 @@ state 65
     (41) expression -> . qualified_id
     (42) expression -> . NUMBER
     (43) expression -> . STRING
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (44) expression -> . TRUE
+    (45) expression -> . FALSE
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     NUMBER          shift and go to state 73
     STRING          shift and go to state 74
+    TRUE            shift and go to state 75
+    FALSE           shift and go to state 76
     IDENTIFIER      shift and go to state 11
 
-    expression                     shift and go to state 84
+    expression                     shift and go to state 86
     qualified_id                   shift and go to state 72
 
 state 66
@@ -926,21 +938,21 @@ state 69
 
     (20) join_item -> join_type JOIN . IDENTIFIER ON expression
 
-    IDENTIFIER      shift and go to state 85
+    IDENTIFIER      shift and go to state 87
 
 
 state 70
 
-    (53) insert_stmt -> INSERT INTO IDENTIFIER VALUES LPAREN value_list . RPAREN
-    (55) value_list -> value_list . COMMA expression
+    (55) insert_stmt -> INSERT INTO IDENTIFIER VALUES LPAREN value_list . RPAREN
+    (57) value_list -> value_list . COMMA expression
 
-    RPAREN          shift and go to state 86
-    COMMA           shift and go to state 87
+    RPAREN          shift and go to state 88
+    COMMA           shift and go to state 89
 
 
 state 71
 
-    (54) value_list -> expression .
+    (56) value_list -> expression .
     (29) expression -> expression . EQUALS expression
     (30) expression -> expression . NEQ expression
     (31) expression -> expression . GT expression
@@ -954,20 +966,20 @@ state 71
     (39) expression -> expression . TIMES expression
     (40) expression -> expression . DIVIDE expression
 
-    RPAREN          reduce using rule 54 (value_list -> expression .)
-    COMMA           reduce using rule 54 (value_list -> expression .)
-    EQUALS          shift and go to state 88
-    NEQ             shift and go to state 89
-    GT              shift and go to state 90
-    LT              shift and go to state 91
-    GE              shift and go to state 92
-    LE              shift and go to state 93
-    AND             shift and go to state 94
-    OR              shift and go to state 95
-    PLUS            shift and go to state 96
-    MINUS           shift and go to state 97
-    TIMES           shift and go to state 98
-    DIVIDE          shift and go to state 99
+    RPAREN          reduce using rule 56 (value_list -> expression .)
+    COMMA           reduce using rule 56 (value_list -> expression .)
+    EQUALS          shift and go to state 90
+    NEQ             shift and go to state 91
+    GT              shift and go to state 92
+    LT              shift and go to state 93
+    GE              shift and go to state 94
+    LE              shift and go to state 95
+    AND             shift and go to state 96
+    OR              shift and go to state 97
+    PLUS            shift and go to state 98
+    MINUS           shift and go to state 99
+    TIMES           shift and go to state 100
+    DIVIDE          shift and go to state 101
 
 
 state 72
@@ -1062,81 +1074,141 @@ state 74
 
 state 75
 
-    (49) column_def -> IDENTIFIER data_type .
+    (44) expression -> TRUE .
 
-    RPAREN          reduce using rule 49 (column_def -> IDENTIFIER data_type .)
-    COMMA           reduce using rule 49 (column_def -> IDENTIFIER data_type .)
+    EQUALS          reduce using rule 44 (expression -> TRUE .)
+    NEQ             reduce using rule 44 (expression -> TRUE .)
+    GT              reduce using rule 44 (expression -> TRUE .)
+    LT              reduce using rule 44 (expression -> TRUE .)
+    GE              reduce using rule 44 (expression -> TRUE .)
+    LE              reduce using rule 44 (expression -> TRUE .)
+    AND             reduce using rule 44 (expression -> TRUE .)
+    OR              reduce using rule 44 (expression -> TRUE .)
+    PLUS            reduce using rule 44 (expression -> TRUE .)
+    MINUS           reduce using rule 44 (expression -> TRUE .)
+    TIMES           reduce using rule 44 (expression -> TRUE .)
+    DIVIDE          reduce using rule 44 (expression -> TRUE .)
+    RPAREN          reduce using rule 44 (expression -> TRUE .)
+    COMMA           reduce using rule 44 (expression -> TRUE .)
+    GROUP           reduce using rule 44 (expression -> TRUE .)
+    SEMICOLON       reduce using rule 44 (expression -> TRUE .)
+    $end            reduce using rule 44 (expression -> TRUE .)
+    INNER           reduce using rule 44 (expression -> TRUE .)
+    LEFT            reduce using rule 44 (expression -> TRUE .)
+    RIGHT           reduce using rule 44 (expression -> TRUE .)
+    FULL            reduce using rule 44 (expression -> TRUE .)
+    CROSS           reduce using rule 44 (expression -> TRUE .)
+    JOIN            reduce using rule 44 (expression -> TRUE .)
+    WHERE           reduce using rule 44 (expression -> TRUE .)
 
 
 state 76
 
-    (50) data_type -> INT .
+    (45) expression -> FALSE .
 
-    RPAREN          reduce using rule 50 (data_type -> INT .)
-    COMMA           reduce using rule 50 (data_type -> INT .)
+    EQUALS          reduce using rule 45 (expression -> FALSE .)
+    NEQ             reduce using rule 45 (expression -> FALSE .)
+    GT              reduce using rule 45 (expression -> FALSE .)
+    LT              reduce using rule 45 (expression -> FALSE .)
+    GE              reduce using rule 45 (expression -> FALSE .)
+    LE              reduce using rule 45 (expression -> FALSE .)
+    AND             reduce using rule 45 (expression -> FALSE .)
+    OR              reduce using rule 45 (expression -> FALSE .)
+    PLUS            reduce using rule 45 (expression -> FALSE .)
+    MINUS           reduce using rule 45 (expression -> FALSE .)
+    TIMES           reduce using rule 45 (expression -> FALSE .)
+    DIVIDE          reduce using rule 45 (expression -> FALSE .)
+    RPAREN          reduce using rule 45 (expression -> FALSE .)
+    COMMA           reduce using rule 45 (expression -> FALSE .)
+    GROUP           reduce using rule 45 (expression -> FALSE .)
+    SEMICOLON       reduce using rule 45 (expression -> FALSE .)
+    $end            reduce using rule 45 (expression -> FALSE .)
+    INNER           reduce using rule 45 (expression -> FALSE .)
+    LEFT            reduce using rule 45 (expression -> FALSE .)
+    RIGHT           reduce using rule 45 (expression -> FALSE .)
+    FULL            reduce using rule 45 (expression -> FALSE .)
+    CROSS           reduce using rule 45 (expression -> FALSE .)
+    JOIN            reduce using rule 45 (expression -> FALSE .)
+    WHERE           reduce using rule 45 (expression -> FALSE .)
 
 
 state 77
 
-    (51) data_type -> TEXT .
+    (51) column_def -> IDENTIFIER data_type .
 
-    RPAREN          reduce using rule 51 (data_type -> TEXT .)
-    COMMA           reduce using rule 51 (data_type -> TEXT .)
+    RPAREN          reduce using rule 51 (column_def -> IDENTIFIER data_type .)
+    COMMA           reduce using rule 51 (column_def -> IDENTIFIER data_type .)
 
 
 state 78
 
-    (52) data_type -> FLOAT .
+    (52) data_type -> INT .
 
-    RPAREN          reduce using rule 52 (data_type -> FLOAT .)
-    COMMA           reduce using rule 52 (data_type -> FLOAT .)
+    RPAREN          reduce using rule 52 (data_type -> INT .)
+    COMMA           reduce using rule 52 (data_type -> INT .)
 
 
 state 79
 
-    (46) create_stmt -> CREATE TABLE IDENTIFIER LPAREN column_defs RPAREN .
+    (53) data_type -> TEXT .
 
-    $end            reduce using rule 46 (create_stmt -> CREATE TABLE IDENTIFIER LPAREN column_defs RPAREN .)
+    RPAREN          reduce using rule 53 (data_type -> TEXT .)
+    COMMA           reduce using rule 53 (data_type -> TEXT .)
 
 
 state 80
 
-    (48) column_defs -> column_defs COMMA . column_def
-    (49) column_def -> . IDENTIFIER data_type
+    (54) data_type -> FLOAT .
 
-    IDENTIFIER      shift and go to state 61
+    RPAREN          reduce using rule 54 (data_type -> FLOAT .)
+    COMMA           reduce using rule 54 (data_type -> FLOAT .)
 
-    column_def                     shift and go to state 100
 
 state 81
 
-    (5) select_stmt -> SELECT projections FROM IDENTIFIER opt_joins opt_where opt_groupby . opt_semicolon
-    (59) opt_semicolon -> . SEMICOLON
-    (60) opt_semicolon -> . empty
-    (61) empty -> .
+    (48) create_stmt -> CREATE TABLE IDENTIFIER LPAREN column_defs RPAREN .
 
-    SEMICOLON       shift and go to state 102
-    $end            reduce using rule 61 (empty -> .)
+    $end            reduce using rule 48 (create_stmt -> CREATE TABLE IDENTIFIER LPAREN column_defs RPAREN .)
 
-    opt_semicolon                  shift and go to state 101
-    empty                          shift and go to state 103
 
 state 82
 
-    (57) opt_groupby -> GROUP . BY qualified_id
+    (50) column_defs -> column_defs COMMA . column_def
+    (51) column_def -> . IDENTIFIER data_type
 
-    BY              shift and go to state 104
+    IDENTIFIER      shift and go to state 61
 
+    column_def                     shift and go to state 102
 
 state 83
 
-    (58) opt_groupby -> empty .
+    (5) select_stmt -> SELECT projections FROM IDENTIFIER opt_joins opt_where opt_groupby . opt_semicolon
+    (61) opt_semicolon -> . SEMICOLON
+    (62) opt_semicolon -> . empty
+    (63) empty -> .
 
-    SEMICOLON       reduce using rule 58 (opt_groupby -> empty .)
-    $end            reduce using rule 58 (opt_groupby -> empty .)
+    SEMICOLON       shift and go to state 104
+    $end            reduce using rule 63 (empty -> .)
 
+    opt_semicolon                  shift and go to state 103
+    empty                          shift and go to state 105
 
 state 84
+
+    (59) opt_groupby -> GROUP . BY qualified_id
+
+    BY              shift and go to state 106
+
+
+state 85
+
+    (60) opt_groupby -> empty .
+
+    SEMICOLON       reduce using rule 60 (opt_groupby -> empty .)
+    $end            reduce using rule 60 (opt_groupby -> empty .)
+
+
+state 86
 
     (27) opt_where -> WHERE expression .
     (29) expression -> expression . EQUALS expression
@@ -1155,37 +1227,37 @@ state 84
     GROUP           reduce using rule 27 (opt_where -> WHERE expression .)
     SEMICOLON       reduce using rule 27 (opt_where -> WHERE expression .)
     $end            reduce using rule 27 (opt_where -> WHERE expression .)
-    EQUALS          shift and go to state 88
-    NEQ             shift and go to state 89
-    GT              shift and go to state 90
-    LT              shift and go to state 91
-    GE              shift and go to state 92
-    LE              shift and go to state 93
-    AND             shift and go to state 94
-    OR              shift and go to state 95
-    PLUS            shift and go to state 96
-    MINUS           shift and go to state 97
-    TIMES           shift and go to state 98
-    DIVIDE          shift and go to state 99
-
-
-state 85
-
-    (20) join_item -> join_type JOIN IDENTIFIER . ON expression
-
-    ON              shift and go to state 105
-
-
-state 86
-
-    (53) insert_stmt -> INSERT INTO IDENTIFIER VALUES LPAREN value_list RPAREN .
-
-    $end            reduce using rule 53 (insert_stmt -> INSERT INTO IDENTIFIER VALUES LPAREN value_list RPAREN .)
+    EQUALS          shift and go to state 90
+    NEQ             shift and go to state 91
+    GT              shift and go to state 92
+    LT              shift and go to state 93
+    GE              shift and go to state 94
+    LE              shift and go to state 95
+    AND             shift and go to state 96
+    OR              shift and go to state 97
+    PLUS            shift and go to state 98
+    MINUS           shift and go to state 99
+    TIMES           shift and go to state 100
+    DIVIDE          shift and go to state 101
 
 
 state 87
 
-    (55) value_list -> value_list COMMA . expression
+    (20) join_item -> join_type JOIN IDENTIFIER . ON expression
+
+    ON              shift and go to state 107
+
+
+state 88
+
+    (55) insert_stmt -> INSERT INTO IDENTIFIER VALUES LPAREN value_list RPAREN .
+
+    $end            reduce using rule 55 (insert_stmt -> INSERT INTO IDENTIFIER VALUES LPAREN value_list RPAREN .)
+
+
+state 89
+
+    (57) value_list -> value_list COMMA . expression
     (29) expression -> . expression EQUALS expression
     (30) expression -> . expression NEQ expression
     (31) expression -> . expression GT expression
@@ -1201,17 +1273,21 @@ state 87
     (41) expression -> . qualified_id
     (42) expression -> . NUMBER
     (43) expression -> . STRING
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (44) expression -> . TRUE
+    (45) expression -> . FALSE
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     NUMBER          shift and go to state 73
     STRING          shift and go to state 74
+    TRUE            shift and go to state 75
+    FALSE           shift and go to state 76
     IDENTIFIER      shift and go to state 11
 
-    expression                     shift and go to state 106
+    expression                     shift and go to state 108
     qualified_id                   shift and go to state 72
 
-state 88
+state 90
 
     (29) expression -> expression EQUALS . expression
     (29) expression -> . expression EQUALS expression
@@ -1229,17 +1305,21 @@ state 88
     (41) expression -> . qualified_id
     (42) expression -> . NUMBER
     (43) expression -> . STRING
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (44) expression -> . TRUE
+    (45) expression -> . FALSE
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     NUMBER          shift and go to state 73
     STRING          shift and go to state 74
+    TRUE            shift and go to state 75
+    FALSE           shift and go to state 76
     IDENTIFIER      shift and go to state 11
 
-    expression                     shift and go to state 107
+    expression                     shift and go to state 109
     qualified_id                   shift and go to state 72
 
-state 89
+state 91
 
     (30) expression -> expression NEQ . expression
     (29) expression -> . expression EQUALS expression
@@ -1257,17 +1337,21 @@ state 89
     (41) expression -> . qualified_id
     (42) expression -> . NUMBER
     (43) expression -> . STRING
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (44) expression -> . TRUE
+    (45) expression -> . FALSE
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     NUMBER          shift and go to state 73
     STRING          shift and go to state 74
+    TRUE            shift and go to state 75
+    FALSE           shift and go to state 76
     IDENTIFIER      shift and go to state 11
 
-    expression                     shift and go to state 108
+    expression                     shift and go to state 110
     qualified_id                   shift and go to state 72
 
-state 90
+state 92
 
     (31) expression -> expression GT . expression
     (29) expression -> . expression EQUALS expression
@@ -1285,17 +1369,21 @@ state 90
     (41) expression -> . qualified_id
     (42) expression -> . NUMBER
     (43) expression -> . STRING
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (44) expression -> . TRUE
+    (45) expression -> . FALSE
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     NUMBER          shift and go to state 73
     STRING          shift and go to state 74
+    TRUE            shift and go to state 75
+    FALSE           shift and go to state 76
     IDENTIFIER      shift and go to state 11
 
-    expression                     shift and go to state 109
+    expression                     shift and go to state 111
     qualified_id                   shift and go to state 72
 
-state 91
+state 93
 
     (32) expression -> expression LT . expression
     (29) expression -> . expression EQUALS expression
@@ -1313,17 +1401,21 @@ state 91
     (41) expression -> . qualified_id
     (42) expression -> . NUMBER
     (43) expression -> . STRING
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (44) expression -> . TRUE
+    (45) expression -> . FALSE
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     NUMBER          shift and go to state 73
     STRING          shift and go to state 74
+    TRUE            shift and go to state 75
+    FALSE           shift and go to state 76
     IDENTIFIER      shift and go to state 11
 
-    expression                     shift and go to state 110
+    expression                     shift and go to state 112
     qualified_id                   shift and go to state 72
 
-state 92
+state 94
 
     (33) expression -> expression GE . expression
     (29) expression -> . expression EQUALS expression
@@ -1341,17 +1433,21 @@ state 92
     (41) expression -> . qualified_id
     (42) expression -> . NUMBER
     (43) expression -> . STRING
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (44) expression -> . TRUE
+    (45) expression -> . FALSE
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     NUMBER          shift and go to state 73
     STRING          shift and go to state 74
+    TRUE            shift and go to state 75
+    FALSE           shift and go to state 76
     IDENTIFIER      shift and go to state 11
 
-    expression                     shift and go to state 111
+    expression                     shift and go to state 113
     qualified_id                   shift and go to state 72
 
-state 93
+state 95
 
     (34) expression -> expression LE . expression
     (29) expression -> . expression EQUALS expression
@@ -1369,17 +1465,21 @@ state 93
     (41) expression -> . qualified_id
     (42) expression -> . NUMBER
     (43) expression -> . STRING
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (44) expression -> . TRUE
+    (45) expression -> . FALSE
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     NUMBER          shift and go to state 73
     STRING          shift and go to state 74
+    TRUE            shift and go to state 75
+    FALSE           shift and go to state 76
     IDENTIFIER      shift and go to state 11
 
-    expression                     shift and go to state 112
+    expression                     shift and go to state 114
     qualified_id                   shift and go to state 72
 
-state 94
+state 96
 
     (35) expression -> expression AND . expression
     (29) expression -> . expression EQUALS expression
@@ -1397,17 +1497,21 @@ state 94
     (41) expression -> . qualified_id
     (42) expression -> . NUMBER
     (43) expression -> . STRING
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (44) expression -> . TRUE
+    (45) expression -> . FALSE
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     NUMBER          shift and go to state 73
     STRING          shift and go to state 74
+    TRUE            shift and go to state 75
+    FALSE           shift and go to state 76
     IDENTIFIER      shift and go to state 11
 
-    expression                     shift and go to state 113
+    expression                     shift and go to state 115
     qualified_id                   shift and go to state 72
 
-state 95
+state 97
 
     (36) expression -> expression OR . expression
     (29) expression -> . expression EQUALS expression
@@ -1425,17 +1529,21 @@ state 95
     (41) expression -> . qualified_id
     (42) expression -> . NUMBER
     (43) expression -> . STRING
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (44) expression -> . TRUE
+    (45) expression -> . FALSE
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     NUMBER          shift and go to state 73
     STRING          shift and go to state 74
+    TRUE            shift and go to state 75
+    FALSE           shift and go to state 76
     IDENTIFIER      shift and go to state 11
 
-    expression                     shift and go to state 114
+    expression                     shift and go to state 116
     qualified_id                   shift and go to state 72
 
-state 96
+state 98
 
     (37) expression -> expression PLUS . expression
     (29) expression -> . expression EQUALS expression
@@ -1453,17 +1561,21 @@ state 96
     (41) expression -> . qualified_id
     (42) expression -> . NUMBER
     (43) expression -> . STRING
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (44) expression -> . TRUE
+    (45) expression -> . FALSE
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     NUMBER          shift and go to state 73
     STRING          shift and go to state 74
+    TRUE            shift and go to state 75
+    FALSE           shift and go to state 76
     IDENTIFIER      shift and go to state 11
 
-    expression                     shift and go to state 115
+    expression                     shift and go to state 117
     qualified_id                   shift and go to state 72
 
-state 97
+state 99
 
     (38) expression -> expression MINUS . expression
     (29) expression -> . expression EQUALS expression
@@ -1481,17 +1593,21 @@ state 97
     (41) expression -> . qualified_id
     (42) expression -> . NUMBER
     (43) expression -> . STRING
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (44) expression -> . TRUE
+    (45) expression -> . FALSE
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     NUMBER          shift and go to state 73
     STRING          shift and go to state 74
+    TRUE            shift and go to state 75
+    FALSE           shift and go to state 76
     IDENTIFIER      shift and go to state 11
 
-    expression                     shift and go to state 116
+    expression                     shift and go to state 118
     qualified_id                   shift and go to state 72
 
-state 98
+state 100
 
     (39) expression -> expression TIMES . expression
     (29) expression -> . expression EQUALS expression
@@ -1509,17 +1625,21 @@ state 98
     (41) expression -> . qualified_id
     (42) expression -> . NUMBER
     (43) expression -> . STRING
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (44) expression -> . TRUE
+    (45) expression -> . FALSE
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     NUMBER          shift and go to state 73
     STRING          shift and go to state 74
+    TRUE            shift and go to state 75
+    FALSE           shift and go to state 76
     IDENTIFIER      shift and go to state 11
 
-    expression                     shift and go to state 117
+    expression                     shift and go to state 119
     qualified_id                   shift and go to state 72
 
-state 99
+state 101
 
     (40) expression -> expression DIVIDE . expression
     (29) expression -> . expression EQUALS expression
@@ -1537,56 +1657,60 @@ state 99
     (41) expression -> . qualified_id
     (42) expression -> . NUMBER
     (43) expression -> . STRING
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (44) expression -> . TRUE
+    (45) expression -> . FALSE
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     NUMBER          shift and go to state 73
     STRING          shift and go to state 74
+    TRUE            shift and go to state 75
+    FALSE           shift and go to state 76
     IDENTIFIER      shift and go to state 11
 
-    expression                     shift and go to state 118
+    expression                     shift and go to state 120
     qualified_id                   shift and go to state 72
 
-state 100
+state 102
 
-    (48) column_defs -> column_defs COMMA column_def .
+    (50) column_defs -> column_defs COMMA column_def .
 
-    RPAREN          reduce using rule 48 (column_defs -> column_defs COMMA column_def .)
-    COMMA           reduce using rule 48 (column_defs -> column_defs COMMA column_def .)
+    RPAREN          reduce using rule 50 (column_defs -> column_defs COMMA column_def .)
+    COMMA           reduce using rule 50 (column_defs -> column_defs COMMA column_def .)
 
 
-state 101
+state 103
 
     (5) select_stmt -> SELECT projections FROM IDENTIFIER opt_joins opt_where opt_groupby opt_semicolon .
 
     $end            reduce using rule 5 (select_stmt -> SELECT projections FROM IDENTIFIER opt_joins opt_where opt_groupby opt_semicolon .)
 
 
-state 102
-
-    (59) opt_semicolon -> SEMICOLON .
-
-    $end            reduce using rule 59 (opt_semicolon -> SEMICOLON .)
-
-
-state 103
-
-    (60) opt_semicolon -> empty .
-
-    $end            reduce using rule 60 (opt_semicolon -> empty .)
-
-
 state 104
 
-    (57) opt_groupby -> GROUP BY . qualified_id
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (61) opt_semicolon -> SEMICOLON .
+
+    $end            reduce using rule 61 (opt_semicolon -> SEMICOLON .)
+
+
+state 105
+
+    (62) opt_semicolon -> empty .
+
+    $end            reduce using rule 62 (opt_semicolon -> empty .)
+
+
+state 106
+
+    (59) opt_groupby -> GROUP BY . qualified_id
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     IDENTIFIER      shift and go to state 11
 
-    qualified_id                   shift and go to state 119
+    qualified_id                   shift and go to state 121
 
-state 105
+state 107
 
     (20) join_item -> join_type JOIN IDENTIFIER ON . expression
     (29) expression -> . expression EQUALS expression
@@ -1604,19 +1728,23 @@ state 105
     (41) expression -> . qualified_id
     (42) expression -> . NUMBER
     (43) expression -> . STRING
-    (44) qualified_id -> . IDENTIFIER DOT IDENTIFIER
-    (45) qualified_id -> . IDENTIFIER
+    (44) expression -> . TRUE
+    (45) expression -> . FALSE
+    (46) qualified_id -> . IDENTIFIER DOT IDENTIFIER
+    (47) qualified_id -> . IDENTIFIER
 
     NUMBER          shift and go to state 73
     STRING          shift and go to state 74
+    TRUE            shift and go to state 75
+    FALSE           shift and go to state 76
     IDENTIFIER      shift and go to state 11
 
-    expression                     shift and go to state 120
+    expression                     shift and go to state 122
     qualified_id                   shift and go to state 72
 
-state 106
+state 108
 
-    (55) value_list -> value_list COMMA expression .
+    (57) value_list -> value_list COMMA expression .
     (29) expression -> expression . EQUALS expression
     (30) expression -> expression . NEQ expression
     (31) expression -> expression . GT expression
@@ -1630,23 +1758,23 @@ state 106
     (39) expression -> expression . TIMES expression
     (40) expression -> expression . DIVIDE expression
 
-    RPAREN          reduce using rule 55 (value_list -> value_list COMMA expression .)
-    COMMA           reduce using rule 55 (value_list -> value_list COMMA expression .)
-    EQUALS          shift and go to state 88
-    NEQ             shift and go to state 89
-    GT              shift and go to state 90
-    LT              shift and go to state 91
-    GE              shift and go to state 92
-    LE              shift and go to state 93
-    AND             shift and go to state 94
-    OR              shift and go to state 95
-    PLUS            shift and go to state 96
-    MINUS           shift and go to state 97
-    TIMES           shift and go to state 98
-    DIVIDE          shift and go to state 99
+    RPAREN          reduce using rule 57 (value_list -> value_list COMMA expression .)
+    COMMA           reduce using rule 57 (value_list -> value_list COMMA expression .)
+    EQUALS          shift and go to state 90
+    NEQ             shift and go to state 91
+    GT              shift and go to state 92
+    LT              shift and go to state 93
+    GE              shift and go to state 94
+    LE              shift and go to state 95
+    AND             shift and go to state 96
+    OR              shift and go to state 97
+    PLUS            shift and go to state 98
+    MINUS           shift and go to state 99
+    TIMES           shift and go to state 100
+    DIVIDE          shift and go to state 101
 
 
-state 107
+state 109
 
     (29) expression -> expression EQUALS expression .
     (29) expression -> expression . EQUALS expression
@@ -1682,26 +1810,26 @@ state 107
     CROSS           reduce using rule 29 (expression -> expression EQUALS expression .)
     JOIN            reduce using rule 29 (expression -> expression EQUALS expression .)
     WHERE           reduce using rule 29 (expression -> expression EQUALS expression .)
-    PLUS            shift and go to state 96
-    MINUS           shift and go to state 97
-    TIMES           shift and go to state 98
-    DIVIDE          shift and go to state 99
+    PLUS            shift and go to state 98
+    MINUS           shift and go to state 99
+    TIMES           shift and go to state 100
+    DIVIDE          shift and go to state 101
 
   ! PLUS            [ reduce using rule 29 (expression -> expression EQUALS expression .) ]
   ! MINUS           [ reduce using rule 29 (expression -> expression EQUALS expression .) ]
   ! TIMES           [ reduce using rule 29 (expression -> expression EQUALS expression .) ]
   ! DIVIDE          [ reduce using rule 29 (expression -> expression EQUALS expression .) ]
-  ! EQUALS          [ shift and go to state 88 ]
-  ! NEQ             [ shift and go to state 89 ]
-  ! GT              [ shift and go to state 90 ]
-  ! LT              [ shift and go to state 91 ]
-  ! GE              [ shift and go to state 92 ]
-  ! LE              [ shift and go to state 93 ]
-  ! AND             [ shift and go to state 94 ]
-  ! OR              [ shift and go to state 95 ]
+  ! EQUALS          [ shift and go to state 90 ]
+  ! NEQ             [ shift and go to state 91 ]
+  ! GT              [ shift and go to state 92 ]
+  ! LT              [ shift and go to state 93 ]
+  ! GE              [ shift and go to state 94 ]
+  ! LE              [ shift and go to state 95 ]
+  ! AND             [ shift and go to state 96 ]
+  ! OR              [ shift and go to state 97 ]
 
 
-state 108
+state 110
 
     (30) expression -> expression NEQ expression .
     (29) expression -> expression . EQUALS expression
@@ -1737,26 +1865,26 @@ state 108
     CROSS           reduce using rule 30 (expression -> expression NEQ expression .)
     JOIN            reduce using rule 30 (expression -> expression NEQ expression .)
     WHERE           reduce using rule 30 (expression -> expression NEQ expression .)
-    PLUS            shift and go to state 96
-    MINUS           shift and go to state 97
-    TIMES           shift and go to state 98
-    DIVIDE          shift and go to state 99
+    PLUS            shift and go to state 98
+    MINUS           shift and go to state 99
+    TIMES           shift and go to state 100
+    DIVIDE          shift and go to state 101
 
   ! PLUS            [ reduce using rule 30 (expression -> expression NEQ expression .) ]
   ! MINUS           [ reduce using rule 30 (expression -> expression NEQ expression .) ]
   ! TIMES           [ reduce using rule 30 (expression -> expression NEQ expression .) ]
   ! DIVIDE          [ reduce using rule 30 (expression -> expression NEQ expression .) ]
-  ! EQUALS          [ shift and go to state 88 ]
-  ! NEQ             [ shift and go to state 89 ]
-  ! GT              [ shift and go to state 90 ]
-  ! LT              [ shift and go to state 91 ]
-  ! GE              [ shift and go to state 92 ]
-  ! LE              [ shift and go to state 93 ]
-  ! AND             [ shift and go to state 94 ]
-  ! OR              [ shift and go to state 95 ]
+  ! EQUALS          [ shift and go to state 90 ]
+  ! NEQ             [ shift and go to state 91 ]
+  ! GT              [ shift and go to state 92 ]
+  ! LT              [ shift and go to state 93 ]
+  ! GE              [ shift and go to state 94 ]
+  ! LE              [ shift and go to state 95 ]
+  ! AND             [ shift and go to state 96 ]
+  ! OR              [ shift and go to state 97 ]
 
 
-state 109
+state 111
 
     (31) expression -> expression GT expression .
     (29) expression -> expression . EQUALS expression
@@ -1792,26 +1920,26 @@ state 109
     CROSS           reduce using rule 31 (expression -> expression GT expression .)
     JOIN            reduce using rule 31 (expression -> expression GT expression .)
     WHERE           reduce using rule 31 (expression -> expression GT expression .)
-    PLUS            shift and go to state 96
-    MINUS           shift and go to state 97
-    TIMES           shift and go to state 98
-    DIVIDE          shift and go to state 99
+    PLUS            shift and go to state 98
+    MINUS           shift and go to state 99
+    TIMES           shift and go to state 100
+    DIVIDE          shift and go to state 101
 
   ! PLUS            [ reduce using rule 31 (expression -> expression GT expression .) ]
   ! MINUS           [ reduce using rule 31 (expression -> expression GT expression .) ]
   ! TIMES           [ reduce using rule 31 (expression -> expression GT expression .) ]
   ! DIVIDE          [ reduce using rule 31 (expression -> expression GT expression .) ]
-  ! EQUALS          [ shift and go to state 88 ]
-  ! NEQ             [ shift and go to state 89 ]
-  ! GT              [ shift and go to state 90 ]
-  ! LT              [ shift and go to state 91 ]
-  ! GE              [ shift and go to state 92 ]
-  ! LE              [ shift and go to state 93 ]
-  ! AND             [ shift and go to state 94 ]
-  ! OR              [ shift and go to state 95 ]
+  ! EQUALS          [ shift and go to state 90 ]
+  ! NEQ             [ shift and go to state 91 ]
+  ! GT              [ shift and go to state 92 ]
+  ! LT              [ shift and go to state 93 ]
+  ! GE              [ shift and go to state 94 ]
+  ! LE              [ shift and go to state 95 ]
+  ! AND             [ shift and go to state 96 ]
+  ! OR              [ shift and go to state 97 ]
 
 
-state 110
+state 112
 
     (32) expression -> expression LT expression .
     (29) expression -> expression . EQUALS expression
@@ -1847,26 +1975,26 @@ state 110
     CROSS           reduce using rule 32 (expression -> expression LT expression .)
     JOIN            reduce using rule 32 (expression -> expression LT expression .)
     WHERE           reduce using rule 32 (expression -> expression LT expression .)
-    PLUS            shift and go to state 96
-    MINUS           shift and go to state 97
-    TIMES           shift and go to state 98
-    DIVIDE          shift and go to state 99
+    PLUS            shift and go to state 98
+    MINUS           shift and go to state 99
+    TIMES           shift and go to state 100
+    DIVIDE          shift and go to state 101
 
   ! PLUS            [ reduce using rule 32 (expression -> expression LT expression .) ]
   ! MINUS           [ reduce using rule 32 (expression -> expression LT expression .) ]
   ! TIMES           [ reduce using rule 32 (expression -> expression LT expression .) ]
   ! DIVIDE          [ reduce using rule 32 (expression -> expression LT expression .) ]
-  ! EQUALS          [ shift and go to state 88 ]
-  ! NEQ             [ shift and go to state 89 ]
-  ! GT              [ shift and go to state 90 ]
-  ! LT              [ shift and go to state 91 ]
-  ! GE              [ shift and go to state 92 ]
-  ! LE              [ shift and go to state 93 ]
-  ! AND             [ shift and go to state 94 ]
-  ! OR              [ shift and go to state 95 ]
+  ! EQUALS          [ shift and go to state 90 ]
+  ! NEQ             [ shift and go to state 91 ]
+  ! GT              [ shift and go to state 92 ]
+  ! LT              [ shift and go to state 93 ]
+  ! GE              [ shift and go to state 94 ]
+  ! LE              [ shift and go to state 95 ]
+  ! AND             [ shift and go to state 96 ]
+  ! OR              [ shift and go to state 97 ]
 
 
-state 111
+state 113
 
     (33) expression -> expression GE expression .
     (29) expression -> expression . EQUALS expression
@@ -1902,26 +2030,26 @@ state 111
     CROSS           reduce using rule 33 (expression -> expression GE expression .)
     JOIN            reduce using rule 33 (expression -> expression GE expression .)
     WHERE           reduce using rule 33 (expression -> expression GE expression .)
-    PLUS            shift and go to state 96
-    MINUS           shift and go to state 97
-    TIMES           shift and go to state 98
-    DIVIDE          shift and go to state 99
+    PLUS            shift and go to state 98
+    MINUS           shift and go to state 99
+    TIMES           shift and go to state 100
+    DIVIDE          shift and go to state 101
 
   ! PLUS            [ reduce using rule 33 (expression -> expression GE expression .) ]
   ! MINUS           [ reduce using rule 33 (expression -> expression GE expression .) ]
   ! TIMES           [ reduce using rule 33 (expression -> expression GE expression .) ]
   ! DIVIDE          [ reduce using rule 33 (expression -> expression GE expression .) ]
-  ! EQUALS          [ shift and go to state 88 ]
-  ! NEQ             [ shift and go to state 89 ]
-  ! GT              [ shift and go to state 90 ]
-  ! LT              [ shift and go to state 91 ]
-  ! GE              [ shift and go to state 92 ]
-  ! LE              [ shift and go to state 93 ]
-  ! AND             [ shift and go to state 94 ]
-  ! OR              [ shift and go to state 95 ]
+  ! EQUALS          [ shift and go to state 90 ]
+  ! NEQ             [ shift and go to state 91 ]
+  ! GT              [ shift and go to state 92 ]
+  ! LT              [ shift and go to state 93 ]
+  ! GE              [ shift and go to state 94 ]
+  ! LE              [ shift and go to state 95 ]
+  ! AND             [ shift and go to state 96 ]
+  ! OR              [ shift and go to state 97 ]
 
 
-state 112
+state 114
 
     (34) expression -> expression LE expression .
     (29) expression -> expression . EQUALS expression
@@ -1957,26 +2085,26 @@ state 112
     CROSS           reduce using rule 34 (expression -> expression LE expression .)
     JOIN            reduce using rule 34 (expression -> expression LE expression .)
     WHERE           reduce using rule 34 (expression -> expression LE expression .)
-    PLUS            shift and go to state 96
-    MINUS           shift and go to state 97
-    TIMES           shift and go to state 98
-    DIVIDE          shift and go to state 99
+    PLUS            shift and go to state 98
+    MINUS           shift and go to state 99
+    TIMES           shift and go to state 100
+    DIVIDE          shift and go to state 101
 
   ! PLUS            [ reduce using rule 34 (expression -> expression LE expression .) ]
   ! MINUS           [ reduce using rule 34 (expression -> expression LE expression .) ]
   ! TIMES           [ reduce using rule 34 (expression -> expression LE expression .) ]
   ! DIVIDE          [ reduce using rule 34 (expression -> expression LE expression .) ]
-  ! EQUALS          [ shift and go to state 88 ]
-  ! NEQ             [ shift and go to state 89 ]
-  ! GT              [ shift and go to state 90 ]
-  ! LT              [ shift and go to state 91 ]
-  ! GE              [ shift and go to state 92 ]
-  ! LE              [ shift and go to state 93 ]
-  ! AND             [ shift and go to state 94 ]
-  ! OR              [ shift and go to state 95 ]
+  ! EQUALS          [ shift and go to state 90 ]
+  ! NEQ             [ shift and go to state 91 ]
+  ! GT              [ shift and go to state 92 ]
+  ! LT              [ shift and go to state 93 ]
+  ! GE              [ shift and go to state 94 ]
+  ! LE              [ shift and go to state 95 ]
+  ! AND             [ shift and go to state 96 ]
+  ! OR              [ shift and go to state 97 ]
 
 
-state 113
+state 115
 
     (35) expression -> expression AND expression .
     (29) expression -> expression . EQUALS expression
@@ -2006,16 +2134,16 @@ state 113
     CROSS           reduce using rule 35 (expression -> expression AND expression .)
     JOIN            reduce using rule 35 (expression -> expression AND expression .)
     WHERE           reduce using rule 35 (expression -> expression AND expression .)
-    EQUALS          shift and go to state 88
-    NEQ             shift and go to state 89
-    GT              shift and go to state 90
-    LT              shift and go to state 91
-    GE              shift and go to state 92
-    LE              shift and go to state 93
-    PLUS            shift and go to state 96
-    MINUS           shift and go to state 97
-    TIMES           shift and go to state 98
-    DIVIDE          shift and go to state 99
+    EQUALS          shift and go to state 90
+    NEQ             shift and go to state 91
+    GT              shift and go to state 92
+    LT              shift and go to state 93
+    GE              shift and go to state 94
+    LE              shift and go to state 95
+    PLUS            shift and go to state 98
+    MINUS           shift and go to state 99
+    TIMES           shift and go to state 100
+    DIVIDE          shift and go to state 101
 
   ! EQUALS          [ reduce using rule 35 (expression -> expression AND expression .) ]
   ! NEQ             [ reduce using rule 35 (expression -> expression AND expression .) ]
@@ -2027,11 +2155,11 @@ state 113
   ! MINUS           [ reduce using rule 35 (expression -> expression AND expression .) ]
   ! TIMES           [ reduce using rule 35 (expression -> expression AND expression .) ]
   ! DIVIDE          [ reduce using rule 35 (expression -> expression AND expression .) ]
-  ! AND             [ shift and go to state 94 ]
-  ! OR              [ shift and go to state 95 ]
+  ! AND             [ shift and go to state 96 ]
+  ! OR              [ shift and go to state 97 ]
 
 
-state 114
+state 116
 
     (36) expression -> expression OR expression .
     (29) expression -> expression . EQUALS expression
@@ -2060,17 +2188,17 @@ state 114
     CROSS           reduce using rule 36 (expression -> expression OR expression .)
     JOIN            reduce using rule 36 (expression -> expression OR expression .)
     WHERE           reduce using rule 36 (expression -> expression OR expression .)
-    EQUALS          shift and go to state 88
-    NEQ             shift and go to state 89
-    GT              shift and go to state 90
-    LT              shift and go to state 91
-    GE              shift and go to state 92
-    LE              shift and go to state 93
-    AND             shift and go to state 94
-    PLUS            shift and go to state 96
-    MINUS           shift and go to state 97
-    TIMES           shift and go to state 98
-    DIVIDE          shift and go to state 99
+    EQUALS          shift and go to state 90
+    NEQ             shift and go to state 91
+    GT              shift and go to state 92
+    LT              shift and go to state 93
+    GE              shift and go to state 94
+    LE              shift and go to state 95
+    AND             shift and go to state 96
+    PLUS            shift and go to state 98
+    MINUS           shift and go to state 99
+    TIMES           shift and go to state 100
+    DIVIDE          shift and go to state 101
 
   ! EQUALS          [ reduce using rule 36 (expression -> expression OR expression .) ]
   ! NEQ             [ reduce using rule 36 (expression -> expression OR expression .) ]
@@ -2083,10 +2211,10 @@ state 114
   ! MINUS           [ reduce using rule 36 (expression -> expression OR expression .) ]
   ! TIMES           [ reduce using rule 36 (expression -> expression OR expression .) ]
   ! DIVIDE          [ reduce using rule 36 (expression -> expression OR expression .) ]
-  ! OR              [ shift and go to state 95 ]
+  ! OR              [ shift and go to state 97 ]
 
 
-state 115
+state 117
 
     (37) expression -> expression PLUS expression .
     (29) expression -> expression . EQUALS expression
@@ -2124,24 +2252,24 @@ state 115
     CROSS           reduce using rule 37 (expression -> expression PLUS expression .)
     JOIN            reduce using rule 37 (expression -> expression PLUS expression .)
     WHERE           reduce using rule 37 (expression -> expression PLUS expression .)
-    TIMES           shift and go to state 98
-    DIVIDE          shift and go to state 99
+    TIMES           shift and go to state 100
+    DIVIDE          shift and go to state 101
 
   ! TIMES           [ reduce using rule 37 (expression -> expression PLUS expression .) ]
   ! DIVIDE          [ reduce using rule 37 (expression -> expression PLUS expression .) ]
-  ! EQUALS          [ shift and go to state 88 ]
-  ! NEQ             [ shift and go to state 89 ]
-  ! GT              [ shift and go to state 90 ]
-  ! LT              [ shift and go to state 91 ]
-  ! GE              [ shift and go to state 92 ]
-  ! LE              [ shift and go to state 93 ]
-  ! AND             [ shift and go to state 94 ]
-  ! OR              [ shift and go to state 95 ]
-  ! PLUS            [ shift and go to state 96 ]
-  ! MINUS           [ shift and go to state 97 ]
+  ! EQUALS          [ shift and go to state 90 ]
+  ! NEQ             [ shift and go to state 91 ]
+  ! GT              [ shift and go to state 92 ]
+  ! LT              [ shift and go to state 93 ]
+  ! GE              [ shift and go to state 94 ]
+  ! LE              [ shift and go to state 95 ]
+  ! AND             [ shift and go to state 96 ]
+  ! OR              [ shift and go to state 97 ]
+  ! PLUS            [ shift and go to state 98 ]
+  ! MINUS           [ shift and go to state 99 ]
 
 
-state 116
+state 118
 
     (38) expression -> expression MINUS expression .
     (29) expression -> expression . EQUALS expression
@@ -2179,24 +2307,24 @@ state 116
     CROSS           reduce using rule 38 (expression -> expression MINUS expression .)
     JOIN            reduce using rule 38 (expression -> expression MINUS expression .)
     WHERE           reduce using rule 38 (expression -> expression MINUS expression .)
-    TIMES           shift and go to state 98
-    DIVIDE          shift and go to state 99
+    TIMES           shift and go to state 100
+    DIVIDE          shift and go to state 101
 
   ! TIMES           [ reduce using rule 38 (expression -> expression MINUS expression .) ]
   ! DIVIDE          [ reduce using rule 38 (expression -> expression MINUS expression .) ]
-  ! EQUALS          [ shift and go to state 88 ]
-  ! NEQ             [ shift and go to state 89 ]
-  ! GT              [ shift and go to state 90 ]
-  ! LT              [ shift and go to state 91 ]
-  ! GE              [ shift and go to state 92 ]
-  ! LE              [ shift and go to state 93 ]
-  ! AND             [ shift and go to state 94 ]
-  ! OR              [ shift and go to state 95 ]
-  ! PLUS            [ shift and go to state 96 ]
-  ! MINUS           [ shift and go to state 97 ]
+  ! EQUALS          [ shift and go to state 90 ]
+  ! NEQ             [ shift and go to state 91 ]
+  ! GT              [ shift and go to state 92 ]
+  ! LT              [ shift and go to state 93 ]
+  ! GE              [ shift and go to state 94 ]
+  ! LE              [ shift and go to state 95 ]
+  ! AND             [ shift and go to state 96 ]
+  ! OR              [ shift and go to state 97 ]
+  ! PLUS            [ shift and go to state 98 ]
+  ! MINUS           [ shift and go to state 99 ]
 
 
-state 117
+state 119
 
     (39) expression -> expression TIMES expression .
     (29) expression -> expression . EQUALS expression
@@ -2237,21 +2365,21 @@ state 117
     JOIN            reduce using rule 39 (expression -> expression TIMES expression .)
     WHERE           reduce using rule 39 (expression -> expression TIMES expression .)
 
-  ! EQUALS          [ shift and go to state 88 ]
-  ! NEQ             [ shift and go to state 89 ]
-  ! GT              [ shift and go to state 90 ]
-  ! LT              [ shift and go to state 91 ]
-  ! GE              [ shift and go to state 92 ]
-  ! LE              [ shift and go to state 93 ]
-  ! AND             [ shift and go to state 94 ]
-  ! OR              [ shift and go to state 95 ]
-  ! PLUS            [ shift and go to state 96 ]
-  ! MINUS           [ shift and go to state 97 ]
-  ! TIMES           [ shift and go to state 98 ]
-  ! DIVIDE          [ shift and go to state 99 ]
+  ! EQUALS          [ shift and go to state 90 ]
+  ! NEQ             [ shift and go to state 91 ]
+  ! GT              [ shift and go to state 92 ]
+  ! LT              [ shift and go to state 93 ]
+  ! GE              [ shift and go to state 94 ]
+  ! LE              [ shift and go to state 95 ]
+  ! AND             [ shift and go to state 96 ]
+  ! OR              [ shift and go to state 97 ]
+  ! PLUS            [ shift and go to state 98 ]
+  ! MINUS           [ shift and go to state 99 ]
+  ! TIMES           [ shift and go to state 100 ]
+  ! DIVIDE          [ shift and go to state 101 ]
 
 
-state 118
+state 120
 
     (40) expression -> expression DIVIDE expression .
     (29) expression -> expression . EQUALS expression
@@ -2292,29 +2420,29 @@ state 118
     JOIN            reduce using rule 40 (expression -> expression DIVIDE expression .)
     WHERE           reduce using rule 40 (expression -> expression DIVIDE expression .)
 
-  ! EQUALS          [ shift and go to state 88 ]
-  ! NEQ             [ shift and go to state 89 ]
-  ! GT              [ shift and go to state 90 ]
-  ! LT              [ shift and go to state 91 ]
-  ! GE              [ shift and go to state 92 ]
-  ! LE              [ shift and go to state 93 ]
-  ! AND             [ shift and go to state 94 ]
-  ! OR              [ shift and go to state 95 ]
-  ! PLUS            [ shift and go to state 96 ]
-  ! MINUS           [ shift and go to state 97 ]
-  ! TIMES           [ shift and go to state 98 ]
-  ! DIVIDE          [ shift and go to state 99 ]
+  ! EQUALS          [ shift and go to state 90 ]
+  ! NEQ             [ shift and go to state 91 ]
+  ! GT              [ shift and go to state 92 ]
+  ! LT              [ shift and go to state 93 ]
+  ! GE              [ shift and go to state 94 ]
+  ! LE              [ shift and go to state 95 ]
+  ! AND             [ shift and go to state 96 ]
+  ! OR              [ shift and go to state 97 ]
+  ! PLUS            [ shift and go to state 98 ]
+  ! MINUS           [ shift and go to state 99 ]
+  ! TIMES           [ shift and go to state 100 ]
+  ! DIVIDE          [ shift and go to state 101 ]
 
 
-state 119
+state 121
 
-    (57) opt_groupby -> GROUP BY qualified_id .
+    (59) opt_groupby -> GROUP BY qualified_id .
 
-    SEMICOLON       reduce using rule 57 (opt_groupby -> GROUP BY qualified_id .)
-    $end            reduce using rule 57 (opt_groupby -> GROUP BY qualified_id .)
+    SEMICOLON       reduce using rule 59 (opt_groupby -> GROUP BY qualified_id .)
+    $end            reduce using rule 59 (opt_groupby -> GROUP BY qualified_id .)
 
 
-state 120
+state 122
 
     (20) join_item -> join_type JOIN IDENTIFIER ON expression .
     (29) expression -> expression . EQUALS expression
@@ -2340,16 +2468,16 @@ state 120
     GROUP           reduce using rule 20 (join_item -> join_type JOIN IDENTIFIER ON expression .)
     SEMICOLON       reduce using rule 20 (join_item -> join_type JOIN IDENTIFIER ON expression .)
     $end            reduce using rule 20 (join_item -> join_type JOIN IDENTIFIER ON expression .)
-    EQUALS          shift and go to state 88
-    NEQ             shift and go to state 89
-    GT              shift and go to state 90
-    LT              shift and go to state 91
-    GE              shift and go to state 92
-    LE              shift and go to state 93
-    AND             shift and go to state 94
-    OR              shift and go to state 95
-    PLUS            shift and go to state 96
-    MINUS           shift and go to state 97
-    TIMES           shift and go to state 98
-    DIVIDE          shift and go to state 99
+    EQUALS          shift and go to state 90
+    NEQ             shift and go to state 91
+    GT              shift and go to state 92
+    LT              shift and go to state 93
+    GE              shift and go to state 94
+    LE              shift and go to state 95
+    AND             shift and go to state 96
+    OR              shift and go to state 97
+    PLUS            shift and go to state 98
+    MINUS           shift and go to state 99
+    TIMES           shift and go to state 100
+    DIVIDE          shift and go to state 101
 

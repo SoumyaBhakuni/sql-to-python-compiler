@@ -1,0 +1,476 @@
+// Backend/models/Club.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const Club = sequelize.define('Club', {
+  clubId: { type: DataTypes.STRING, allowNull: false, primaryKey: true }, // MODIFIED
+  clubName: { type: DataTypes.STRING, allowNull: false, unique: true },
+  clubDescription: { type: DataTypes.TEXT },
+  clubLogoUrl: { type: DataTypes.STRING },
+});
+export default Club;
+
+// Backend/models/CommitteeEvent.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const CommitteeEvent = sequelize.define('CommitteeEvent', {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  studentId: { type: DataTypes.STRING, allowNull: false }, // FK to Student
+  eventArchiveId: { type: DataTypes.INTEGER, allowNull: false }, // FK to EventArchive
+});
+export default CommitteeEvent;
+
+// Backend/models/Course.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const Course = sequelize.define('Course', { // This is the Program (e.g., B.Tech)
+  courseId: { type: DataTypes.STRING, allowNull: false, primaryKey: true }, // MODIFIED
+  courseName: { type: DataTypes.STRING, allowNull: false, unique: true },
+  departmentId: { type: DataTypes.STRING, allowNull: false }, // MODIFIED to STRING (FK)
+});
+export default Course;
+
+// Backend/models/Department.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const Department = sequelize.define('Department', {
+  departmentId: { type: DataTypes.STRING, allowNull: false, primaryKey: true }, // MODIFIED
+  departmentName: { type: DataTypes.STRING, allowNull: false, unique: true },
+  headEmployeeId: { type: DataTypes.STRING, allowNull: true }, // FK to Employee (already STRING)
+});
+export default Department;
+
+// Backend/models/Employee.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const Employee = sequelize.define('Employee', {
+  employeeId: { type: DataTypes.STRING, primaryKey: true },
+  name: { type: DataTypes.STRING, allowNull: false },
+  email: { type: DataTypes.STRING, allowNull: false, unique: true },
+  departmentId: { type: DataTypes.INTEGER, allowNull: false }, // FK to Department
+  isResourceIncharge: { type: DataTypes.BOOLEAN, defaultValue: false },
+});
+export default Employee;
+
+// Backend/models/EmployeeOrganizedEvent.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const EmployeeOrganizedEvent = sequelize.define('EmployeeOrganizedEvent', {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  employeeId: { type: DataTypes.STRING, allowNull: false }, // FK to Employee
+  eventArchiveId: { type: DataTypes.INTEGER, allowNull: false }, // FK to EventArchive
+});
+export default EmployeeOrganizedEvent;
+
+// Backend/models/Event.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+
+const Event = sequelize.define('Event', {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  eventName: { type: DataTypes.STRING, allowNull: false },
+  eventDesc: { type: DataTypes.TEXT, allowNull: true },
+  startTime: { type: DataTypes.DATE, allowNull: false }, // Updated
+  endTime: { type: DataTypes.DATE, allowNull: false },   // Updated
+  venue: { type: DataTypes.STRING, allowNull: false },
+  
+  // --- NEW FIELDS & FOREIGN KEYS FROM OUR ERD ---
+  organizerId: { type: DataTypes.INTEGER, allowNull: false }, // FK to User
+  parentId: { type: DataTypes.INTEGER, allowNull: true },    // FK to Event (self)
+  clubId: { type: DataTypes.STRING, allowNull: true },      // FK to Club (MODIFIED to STRING)
+    
+  contactDetails: { type: DataTypes.JSON, allowNull: true },
+  registrationSchema: { type: DataTypes.JSON, allowNull: true },
+  paymentQRCodes: { type: DataTypes.JSON, allowNull: true },
+  
+  registrationType: { type: DataTypes.STRING }, // 'Individual' or 'Team'
+  isPaidEvent: { type: DataTypes.BOOLEAN, defaultValue: false },
+  hasLeaderboard: { type: DataTypes.BOOLEAN, defaultValue: false },
+  showLeaderboardMarks: { type: DataTypes.BOOLEAN, defaultValue: false },
+  registrationLocked: { type: DataTypes.BOOLEAN, defaultValue: false },
+});
+
+export default Event;
+
+// Backend/models/EventArchive.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const EventArchive = sequelize.define('EventArchive', {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  originalEventId: { type: DataTypes.INTEGER, allowNull: false },
+  eventName: { type: DataTypes.STRING, allowNull: false },
+  organizerName: { type: DataTypes.STRING }, // Storing name for posterity
+  date: { type: DataTypes.DATE },
+  venue: { type: DataTypes.STRING },
+  participantCount: { type: DataTypes.INTEGER },
+});
+export default EventArchive;
+
+// Backend/models/EventMember.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const EventMember = sequelize.define('EventMember', {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  eventId: { type: DataTypes.INTEGER, allowNull: false }, // FK to Event
+  memberId: { type: DataTypes.STRING, allowNull: false }, // Can be studentId or employeeId
+  memberType: { type: DataTypes.STRING, allowNull: false }, // 'Student' or 'Employee'
+  role: { type: DataTypes.STRING, allowNull: false }, // Participant, Committee Member, Student Organiser, Employee Organiser
+  checkedIn: { type: DataTypes.BOOLEAN, defaultValue: false },
+  teamId: { type: DataTypes.INTEGER, allowNull: true }, // FK to Team
+  transactionId: { type: DataTypes.STRING }, // For individual paid
+  paymentScreenshotPath: { type: DataTypes.STRING }, // For individual paid
+  paymentStatus: { type: DataTypes.STRING, defaultValue: 'Pending' }, // For individual paid
+});
+export default EventMember;
+
+// Backend/models/EventRequest.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const EventRequest = sequelize.define('EventRequest', {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  requestorEmail: { type: DataTypes.STRING, allowNull: false },
+  eventDetails: { type: DataTypes.JSON },
+  requestedEventCount: { type: DataTypes.INTEGER, defaultValue: 1 },
+  status: { type: DataTypes.STRING, allowNull: false }, // Pending_Admin, Pending_Main_Organizer, Approved, Rejected
+  requestType: { type: DataTypes.STRING, allowNull: false }, // Fest, Single
+  scope: { type: DataTypes.STRING, allowNull: false }, // Individual, Part of Fest
+  parentFestId: { type: DataTypes.INTEGER, allowNull: true }, // FK to Event
+});
+export default EventRequest;
+
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+
+const EventRequirement = sequelize.define('EventRequirement', {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  eventId: { type: DataTypes.INTEGER, allowNull: false },     // FK to Event
+  resourceId: { type: DataTypes.STRING, allowNull: false },  // FK to Resource (MODIFIED to STRING)
+  quantity: { type: DataTypes.INTEGER, allowNull: false },
+  status: {
+    type: DataTypes.STRING,
+    defaultValue: 'Pending', // Pending, Approved, Rejected
+  },
+});
+
+export default EventRequirement;
+
+// Backend/models/index.js
+import sequelize from '../config/db.js';
+import { DataTypes } from 'sequelize'; // <-- Import DataTypes for explicit FK definitions
+
+// Import all models
+import Student from './Student.js';
+import Employee from './Employee.js';
+import Department from './Department.js';
+import Course from './Course.js';
+import Subject from './Subject.js';
+import TimeTable from './TimeTable.js';
+import TimeTableEntry from './TimeTableEntry.js';
+import Club from './Club.js';
+import Resource from './Resource.js';
+import User from './User.js';
+import EventRequest from './EventRequest.js';
+import Event from './Event.js';
+import EventRequirement from './EventRequirement.js';
+import Team from './Team.js';
+import EventMember from './EventMember.js';
+import Leaderboard from './Leaderboard.js';
+import EventArchive from './EventArchive.js';
+import ParticipatedEvent from './ParticipatedEvent.js';
+import CommitteeEvent from './CommitteeEvent.js';
+import OrganizedEvent from './OrganizedEvent.js';
+import EmployeeOrganizedEvent from './EmployeeOrganizedEvent.js';
+
+// Create an object to hold all models
+const db = {
+  sequelize,
+  Student,
+  Employee,
+  Department,
+  Course,
+  Subject,
+  TimeTable,
+  TimeTableEntry,
+  Club,
+  Resource,
+  User,
+  EventRequest,
+  Event,
+  EventRequirement,
+  Team,
+  EventMember,
+  Leaderboard,
+  EventArchive,
+  ParticipatedEvent,
+  CommitteeEvent,
+  OrganizedEvent,
+  EmployeeOrganizedEvent,
+};
+
+// --- (Step 1) DEFINE ALL MODEL ASSOCIATIONS ---
+
+// --- Zone 1: Academic Core Associations (UPDATED FOR STRING IDs) ---
+// Department/Employee
+Department.hasMany(Employee, { foreignKey: { name: 'departmentId', type: DataTypes.STRING } });
+Employee.belongsTo(Department, { foreignKey: { name: 'departmentId', type: DataTypes.STRING } });
+Department.hasMany(Course, { foreignKey: { name: 'departmentId', type: DataTypes.STRING } });
+Course.belongsTo(Department, { foreignKey: { name: 'departmentId', type: DataTypes.STRING } });
+
+// Department/Employee Head
+Employee.hasOne(Department, { as: 'HeadedDepartment', foreignKey: 'headEmployeeId' });
+Department.belongsTo(Employee, { as: 'Head', foreignKey: 'headEmployeeId' });
+
+// Course/Student/Subject/TimeTable
+Course.hasMany(Student, { foreignKey: { name: 'courseId', type: DataTypes.STRING } });
+Student.belongsTo(Course, { foreignKey: { name: 'courseId', type: DataTypes.STRING } });
+
+Course.hasMany(Subject, { foreignKey: { name: 'courseId', type: DataTypes.STRING } });
+Subject.belongsTo(Course, { foreignKey: { name: 'courseId', type: DataTypes.STRING } });
+
+Course.hasOne(TimeTable, { foreignKey: { name: 'courseId', type: DataTypes.STRING } });
+TimeTable.belongsTo(Course, { foreignKey: { name: 'courseId', type: DataTypes.STRING } });
+
+// TimeTable/TimeTableEntry
+TimeTable.hasMany(TimeTableEntry, { foreignKey: { name: 'timeTableId', type: DataTypes.STRING }, onDelete: 'CASCADE' });
+TimeTableEntry.belongsTo(TimeTable, { foreignKey: { name: 'timeTableId', type: DataTypes.STRING } });
+
+// Subject/TimeTableEntry
+Subject.hasMany(TimeTableEntry, { foreignKey: { name: 'subjectId', type: DataTypes.STRING } });
+TimeTableEntry.belongsTo(Subject, { foreignKey: { name: 'subjectId', type: DataTypes.STRING } });
+
+// Employee/TimeTableEntry
+Employee.hasMany(TimeTableEntry, { foreignKey: 'employeeId' });
+TimeTableEntry.belongsTo(Employee, { foreignKey: 'employeeId' });
+
+// Resource/Employee
+Employee.hasMany(Resource, { foreignKey: 'inchargeEmployeeId' });
+Resource.belongsTo(Employee, { as: 'Incharge', foreignKey: 'inchargeEmployeeId' });
+
+
+// --- Zone 2: Event Layer Associations (UPDATED FOR STRING IDs) ---
+// Club/Event
+Club.hasMany(Event, { foreignKey: { name: 'clubId', type: DataTypes.STRING }, allowNull: true, defaultValue: null });
+Event.belongsTo(Club, { foreignKey: { name: 'clubId', type: DataTypes.STRING } });
+
+// Event/EventRequirement/Resource
+Event.hasMany(EventRequirement, { foreignKey: 'eventId', onDelete: 'CASCADE' });
+EventRequirement.belongsTo(Event, { foreignKey: 'eventId' });
+
+Resource.hasMany(EventRequirement, { foreignKey: { name: 'resourceId', type: DataTypes.STRING } });
+EventRequirement.belongsTo(Resource, { foreignKey: { name: 'resourceId', type: DataTypes.STRING } });
+
+
+// --- Other Event/User/Team/Member Associations (Unchanged) ---
+User.hasMany(Event, { foreignKey: 'organizerId' });
+Event.belongsTo(User, { as: 'Organizer', foreignKey: 'organizerId' });
+Event.hasMany(Event, { as: 'SubEvents', foreignKey: 'parentId', onDelete: 'CASCADE' });
+Event.belongsTo(Event, { as: 'ParentEvent', foreignKey: 'parentId' });
+Event.hasMany(EventRequest, { foreignKey: 'parentFestId' });
+EventRequest.belongsTo(Event, { as: 'ParentFest', foreignKey: 'parentFestId' });
+Event.hasMany(Team, { foreignKey: 'eventId', onDelete: 'CASCADE' });
+Team.belongsTo(Event, { foreignKey: 'eventId' });
+Event.hasMany(Leaderboard, { foreignKey: 'eventId', onDelete: 'CASCADE' });
+Leaderboard.belongsTo(Event, { foreignKey: 'eventId' });
+Event.hasMany(EventMember, { foreignKey: 'eventId', onDelete: 'CASCADE' });
+EventMember.belongsTo(Event, { foreignKey: 'eventId' });
+Team.hasMany(EventMember, { foreignKey: 'teamId', onDelete: 'SET NULL', allowNull: true });
+EventMember.belongsTo(Team, { foreignKey: 'teamId' });
+Student.hasMany(Team, { as: 'LedTeams', foreignKey: 'teamLeaderStudentId' });
+Team.belongsTo(Student, { as: 'TeamLeader', foreignKey: 'teamLeaderStudentId' });
+Student.hasMany(EventMember, { foreignKey: 'memberId', constraints: false, scope: { memberType: 'Student' } });
+EventMember.belongsTo(Student, { foreignKey: 'memberId', constraints: false });
+Employee.hasMany(EventMember, { foreignKey: 'memberId', constraints: false, scope: { memberType: 'Employee' } });
+EventMember.belongsTo(Employee, { foreignKey: 'memberId', constraints: false });
+
+// --- Zone 3: Archive Layer Associations (Unchanged) ---
+EventArchive.hasMany(ParticipatedEvent, { foreignKey: 'eventArchiveId', onDelete: 'CASCADE' });
+EventArchive.hasMany(CommitteeEvent, { foreignKey: 'eventArchiveId', onDelete: 'CASCADE' });
+EventArchive.hasMany(OrganizedEvent, { foreignKey: 'eventArchiveId', onDelete: 'CASCADE' });
+EventArchive.hasMany(EmployeeOrganizedEvent, { foreignKey: 'eventArchiveId', onDelete: 'CASCADE' });
+ParticipatedEvent.belongsTo(EventArchive, { foreignKey: 'eventArchiveId' });
+CommitteeEvent.belongsTo(EventArchive, { foreignKey: 'eventArchiveId' });
+OrganizedEvent.belongsTo(EventArchive, { foreignKey: 'eventArchiveId' });
+EmployeeOrganizedEvent.belongsTo(EventArchive, { foreignKey: 'eventArchiveId' });
+
+// Note: The Student/Employee IDs referenced by the archive tables are already strings (studentId, employeeId), so their FKs are implicitly strings.
+
+// Export all models and sequelize instance
+export default db;
+
+// Backend/models/Leaderboard.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const Leaderboard = sequelize.define('Leaderboard', {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  eventId: { type: DataTypes.INTEGER, allowNull: false }, // FK to Event
+  competitorId: { type: DataTypes.STRING, allowNull: false }, // teamId or studentId
+  competitorType: { type: DataTypes.STRING, allowNull: false }, // 'Team' or 'Individual'
+  marks: { type: DataTypes.INTEGER, defaultValue: 0 },
+  rank: { type: DataTypes.INTEGER },
+});
+export default Leaderboard;
+
+// Backend/models/OrganizedEvent.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const OrganizedEvent = sequelize.define('OrganizedEvent', {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  studentId: { type: DataTypes.STRING, allowNull: false }, // FK to Student
+  eventArchiveId: { type: DataTypes.INTEGER, allowNull: false }, // FK to EventArchive
+});
+export default OrganizedEvent;
+
+// Backend/models/ParticipatedEvent.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const ParticipatedEvent = sequelize.define('ParticipatedEvent', {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  studentId: { type: DataTypes.STRING, allowNull: false }, // FK to Student
+  eventArchiveId: { type: DataTypes.INTEGER, allowNull: false }, // FK to EventArchive
+});
+export default ParticipatedEvent;
+
+// Backend/models/Resource.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const Resource = sequelize.define('Resource', {
+  resourceId: { type: DataTypes.STRING, allowNull: false, primaryKey: true }, // MODIFIED
+  resourceName: { type: DataTypes.STRING, allowNull: false, unique: true },
+  category: { type: DataTypes.STRING },
+  inchargeEmployeeId: { type: DataTypes.STRING, allowNull: false }, // FK to Employee (already STRING)
+});
+export default Resource;
+
+// Backend/models/Student.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const Student = sequelize.define('Student', {
+  studentId: { type: DataTypes.STRING, primaryKey: true },
+  name: { type: DataTypes.STRING, allowNull: false },
+  email: { type: DataTypes.STRING, allowNull: false, unique: true },
+  classRollNo: { type: DataTypes.STRING, allowNull: false },
+  year: { type: DataTypes.INTEGER, allowNull: false },
+  section: { type: DataTypes.STRING, allowNull: false },
+  courseId: { type: DataTypes.STRING, allowNull: false }, // MODIFIED to STRING (FK)
+});
+export default Student;
+
+// Backend/models/Subject.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const Subject = sequelize.define('Subject', { // This is the Class (e.g., Data Structures)
+  subjectId: { type: DataTypes.STRING, allowNull: false, primaryKey: true }, // MODIFIED
+  subjectName: { type: DataTypes.STRING, allowNull: false },
+  subjectCode: { type: DataTypes.STRING, allowNull: false, unique: true },
+  courseId: { type: DataTypes.STRING, allowNull: false }, // MODIFIED to STRING (FK)
+  year: { type: DataTypes.INTEGER, allowNull: false },
+});
+export default Subject;
+
+// Backend/models/Team.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const Team = sequelize.define('Team', {
+  teamId: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  eventId: { type: DataTypes.INTEGER, allowNull: false }, // FK to Event
+  teamName: { type: DataTypes.STRING, allowNull: false },
+  teamLeaderStudentId: { type: DataTypes.STRING, allowNull: false }, // FK to Student
+  transactionId: { type: DataTypes.STRING },
+  paymentScreenshotPath: { type: DataTypes.STRING },
+  paymentStatus: { type: DataTypes.STRING, defaultValue: 'Pending' }, // Pending, Verified
+  customFormData: { type: DataTypes.JSON },
+});
+export default Team;
+
+// Backend/models/TimeTable.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const TimeTable = sequelize.define('TimeTable', { // This is the "Group"
+  timeTableId: { type: DataTypes.STRING, allowNull: false, primaryKey: true }, // MODIFIED
+  courseId: { type: DataTypes.STRING, allowNull: false }, // MODIFIED to STRING (FK)
+  year: { type: DataTypes.INTEGER, allowNull: false },
+  section: { type: DataTypes.STRING, allowNull: false },
+}, {
+  uniqueKeys: {
+    unique_timetable: {
+      fields: ['courseId', 'year', 'section']
+    }
+  }
+});
+export default TimeTable;
+
+// Backend/models/TimeTableEntry.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+const TimeTableEntry = sequelize.define('TimeTableEntry', { // This is the "Schedule"
+  entryId: { type: DataTypes.STRING, allowNull: false, primaryKey: true }, // MODIFIED
+  timeTableId: { type: DataTypes.STRING, allowNull: false }, // MODIFIED to STRING (FK)
+  subjectId: { type: DataTypes.STRING, allowNull: false }, // MODIFIED to STRING (FK)
+  employeeId: { type: DataTypes.STRING, allowNull: false },  // FK to Employee
+  day: { type: DataTypes.STRING, allowNull: false },
+  timeSlot: { type: DataTypes.STRING, allowNull: false },
+  roomNo: { type: DataTypes.STRING },
+});
+export default TimeTableEntry;
+
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+import bcrypt from 'bcryptjs';
+
+const User = sequelize.define('User', {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  // --- NEW FIELDS FROM OUR ERD ---
+  role: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'Guest', // Admin, Organizer, SubOrganizer, Guest
+  },
+  accessExpiryDate: {
+    type: DataTypes.DATE,
+    allowNull: true, // Null = permanent (for Admins)
+  },
+  eventCreationLimit: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
+  mustChangePassword: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
+});
+
+// Hash password before saving
+User.beforeSave(async (user) => {
+  if (user.changed('password')) {
+    user.password = await bcrypt.hash(user.password, 10);
+  }
+});
+
+// Method to check password
+User.prototype.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+export default User;

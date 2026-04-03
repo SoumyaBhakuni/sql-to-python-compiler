@@ -114,11 +114,18 @@ def p_expression_binop(p):
 def p_expression_term(p):
     '''expression : qualified_id
                   | NUMBER
-                  | STRING'''
-    if isinstance(p[1], (int, float)):
+                  | STRING
+                  | TRUE
+                  | FALSE'''
+    # This logic matches your LiteralNode implementation
+    if p.slice[1].type == 'NUMBER':
         p[0] = LiteralNode(p[1], 'NUMBER')
     elif p.slice[1].type == 'STRING':
         p[0] = LiteralNode(p[1], 'STRING')
+    elif p.slice[1].type == 'TRUE':
+        p[0] = LiteralNode(True, 'BOOLEAN')
+    elif p.slice[1].type == 'FALSE':
+        p[0] = LiteralNode(False, 'BOOLEAN')
     else:
         p[0] = p[1]
 

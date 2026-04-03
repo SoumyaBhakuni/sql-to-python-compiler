@@ -16,28 +16,23 @@ class QueryOptimizer:
         return optimized_plan
 
     def _push_down_predicates(self, op):
-        """
-        Recursively looks for FILTER nodes and tries to move them 
-        deeper into the tree (closer to the SCAN).
-        """
         if not op or not op.source:
             return op
 
-        # Recursive call to optimize the source first (Bottom-Up)
         op.source = self._push_down_predicates(op.source)
 
-        # Logic: If current is PROJECT and source is FILTER, swap them.
-        # This ensures we filter rows before we throw away columns.
-        if op.op_type == "PROJECT" and op.source.op_type == "FILTER":
-            filter_op = op.source
-            project_op = op
+        # CORRECT LOGIC: Push FILTER down BELOW PROJECT
+        # If current is FILTER and source is PROJECT, swap them.
+        if op.op_type == "FILTER" and op.source.op_type == "PROJECT":
+            filter_op = op
+            project_op = op.source
             
-            # Swap: PROJECT points to FILTER's source, FILTER points to PROJECT
-            new_source = filter_op.source
-            filter_op.source = project_op
-            project_op.source = new_source
+            # Swap: FILTER now points to SCAN, PROJECT now points to FILTER
+            new_source = project_op.source # The SCAN
+            filter_op.source = new_source
+            project_op.source = filter_op
             
-            # Return the filter as the new top node
-            return filter_op
+            # Return PROJECT as the new top node
+            return project_op
 
         return op

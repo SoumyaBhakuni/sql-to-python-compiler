@@ -1,6 +1,7 @@
 import ply.lex as lex
 
 # 1. List of token names
+# FIX: Added 'TRUE' and 'FALSE' to this tuple so the Parser can recognize them
 tokens = (
     'NUMBER', 'STRING', 'IDENTIFIER',
     'PLUS', 'MINUS', 'TIMES', 'DIVIDE',
@@ -9,7 +10,8 @@ tokens = (
     'SELECT', 'FROM', 'WHERE', 'JOIN', 'ON', 'INNER', 'LEFT', 'RIGHT', 'FULL', 'CROSS',
     'AND', 'OR', 'IN', 'BETWEEN', 'GROUP', 'BY', 'HAVING', 'INSERT', 'INTO', 'VALUES',
     'UPDATE', 'SET', 'DELETE', 'CREATE', 'TABLE', 'DROP', 'ALTER', 'ADD',
-    'INT', 'TEXT', 'FLOAT', 'SUM', 'COUNT', 'AVG', 'MIN', 'MAX'
+    'INT', 'TEXT', 'FLOAT', 'SUM', 'COUNT', 'AVG', 'MIN', 'MAX',
+    'TRUE', 'FALSE' 
 )
 
 # 2. Reserved words dictionary
@@ -23,11 +25,12 @@ reserved = {
     'create': 'CREATE', 'table': 'TABLE', 'drop': 'DROP', 
     'alter': 'ALTER', 'add': 'ADD',
     'int': 'INT', 'text': 'TEXT', 'float': 'FLOAT',
-    'sum': 'SUM', 'count': 'COUNT', 'avg': 'AVG', 'min': 'MIN', 'max': 'MAX'
+    'sum': 'SUM', 'count': 'COUNT', 'avg': 'AVG', 'min': 'MIN', 'max': 'MAX',
+    'true': 'TRUE',
+    'false': 'FALSE'
 }
 
 # 3. Simple regex rules for operators and delimiters
-# The order here is strictly handled by PLY (longer regexes first)
 t_PLUS      = r'\+'
 t_MINUS     = r'-'
 t_TIMES     = r'\*'
@@ -48,7 +51,6 @@ t_DOT       = r'\.'
 # 4. Complex Regex rules
 def t_NUMBER(t):
     r'\d+(\.\d+)?'
-    # Important: Handling the Dot within a number vs. as a delimiter
     t.value = float(t.value) if '.' in t.value else int(t.value)
     return t
 
@@ -65,7 +67,6 @@ def t_IDENTIFIER(t):
 
 def t_QUOTED_IDENTIFIER(t):
     r'\"[a-zA-Z_][a-zA-Z0-9_]*\"'
-    # Remove the quotes: "Students" becomes Students
     t.value = t.value[1:-1]
     t.type = 'IDENTIFIER'
     return t
@@ -75,7 +76,6 @@ t_ignore = ' \t\n'
 
 # Error handling
 def t_error(t):
-    # This powers the Red state in your Action Circle
     error_msg = f"Lexical Error: Illegal character '{t.value[0]}' at position {t.lexpos}"
     t.lexer.skip(1)
     raise SyntaxError(error_msg)
