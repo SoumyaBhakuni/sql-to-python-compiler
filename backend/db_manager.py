@@ -26,11 +26,33 @@ class DatabaseManager:
         return schema
 
     def execute_raw_sql(self, sql):
+        """
+        Executes raw SQL by automatically quoting PascalCase identifiers 
+        from the schema to support standard SQL syntax.
+        """
         conn = self.get_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
         try:
-            # Matches identifiers after FROM/JOIN and wraps them in " "
-            quoted_sql = re.sub(r'(FROM|JOIN)\s+([a-zA-Z_][a-zA-Z0-9_]*)', r'\1 "\2"', sql, flags=re.IGNORECASE)
+            # 1. Fetch current schema identifiers
+            schema = self.get_schema()
+            all_ids = list(schema.keys())
+            for cols in schema.values():
+                all_ids.extend(cols)
+            
+            # 2. Sort by length descending to prevent partial matching (e.g., matching 'Id' in 'studentId')
+            all_ids = sorted(list(set(all_ids)), key=len, reverse=True)
+            
+            quoted_sql = sql
+            # 3. Automatically wrap known PascalCase identifiers in double quotes
+            for identifier in all_ids:
+                if any(c.isupper() for c in identifier):
+                    # Use word boundaries to target exact matches
+                    pattern = rf'\b{identifier}\b'
+                    quoted_sql = re.sub(pattern, f'"{identifier}"', quoted_sql)
+
+            # 4. Fallback for table-specific quotes after FROM or JOIN
+            quoted_sql = re.sub(r'(?i)\b(FROM|JOIN)\s+([a-zA-Z_]\w*)', r'\1 "\2"', quoted_sql)
+            
             cur.execute(quoted_sql)
             return cur.fetchall()
         finally:

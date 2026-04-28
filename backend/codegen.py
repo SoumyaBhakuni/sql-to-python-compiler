@@ -1,5 +1,3 @@
-# backend/codegen.py
-
 class CodeGenerator:
     def __init__(self):
         self.code_lines = []
@@ -36,16 +34,12 @@ class CodeGenerator:
 
     def _build_python_expr(self, node):
         """Recursively converts AST nodes into Null-safe Python strings."""
-        # Handle Column Names
         if hasattr(node, 'name'):
-            # We wrap the value to handle NULLs from the DB
            return f"get_val(row, '{node.name}')"
     
-        # Handle Literals
         if hasattr(node, 'value'):
             return repr(node.value)
 
-        # Handle Binary Operations
         if hasattr(node, 'left') and hasattr(node, 'right'):
             left_part = self._build_python_expr(node.left)
             right_part = self._build_python_expr(node.right)
@@ -53,8 +47,7 @@ class CodeGenerator:
             op_map = {'=': '==', 'AND': 'and', 'OR': 'or', 'NEQ': '!='}
             py_op = op_map.get(node.op.upper(), node.op)
         
-            # THE FIX: If the operator is a comparison (<, >, <=, >=), 
-            # we add a check to ensure the left side isn't None
+            # Null-safety check for comparison operators
             if py_op in ['<', '>', '<=', '>=', '==', '!=']:
                return f"({left_part} is not None and {left_part} {py_op} {right_part})"
         
@@ -66,7 +59,6 @@ class CodeGenerator:
         if not op:
             return
 
-        # Bottom-Up Execution: Process the source first
         if hasattr(op, 'source') and op.source:
             self._translate_op(op.source)
 
@@ -78,9 +70,7 @@ class CodeGenerator:
 
         elif op.op_type == "FILTER":
             cond = op.params['condition']
-            # Using the recursive helper to build the boolean expression
             py_expression = self._build_python_expr(cond)
-            
             self.code_lines.append(f"{self.indent}# Phase: FILTER (Complex Expression)")
             self.code_lines.append(
                 f"{self.indent}result_data = [row for row in result_data if {py_expression}]"
@@ -88,19 +78,42 @@ class CodeGenerator:
 
         elif op.op_type == "PROJECT":
             cols = op.params['columns']
-            col_names = [c.name if hasattr(c, 'name') else str(c) for c in cols]
-            
-            if "*" not in col_names:
-                self.code_lines.append(f"{self.indent}# Phase: PROJECT")
-                col_list = ", ".join([f"'{c}'" for c in col_names])
-                self.code_lines.append(
-                    f"{self.indent}result_data = [{{c: get_val(row, c) for c in [{col_list}]}} for row in result_data]"
-                )
+            self.code_lines.append(f"{self.indent}# Phase: PROJECT & AGGREGATE")
+        
+            has_aggregates = any(hasattr(c, 'func') for c in cols)
+        
+            if has_aggregates:
+                self.code_lines.append(f"{self.indent}agg_results = {{}}")
+                for col in cols:
+                    if hasattr(col, 'func'):
+                        func = col.func.upper()
+                        c_name = col.column.name
+                        
+                        # Key name standardized to lowercase to match standard SQL output format
+                        key_name = func.lower() 
+                        
+                        if func == 'COUNT':
+                            self.code_lines.append(f"{self.indent}agg_results['{key_name}'] = len(result_data)")
+                        elif func == 'SUM':
+                            self.code_lines.append(
+                                f"{self.indent}agg_results['sum'] = sum("
+                                f"float(get_val(r, '{c_name}')) for r in result_data "
+                                f"if get_val(r, '{c_name}') is not None)"
+                            )
+                self.code_lines.append(f"{self.indent}result_data = [agg_results]")
+            else:
+                col_names = [c.name if hasattr(c, 'name') else str(c) for c in cols]
+                if "*" in col_names:
+                    self.code_lines.append(f"{self.indent}# Keep all columns (SELECT *)")
+                else:
+                    col_list = ", ".join([f"'{c}'" for c in col_names])
+                    self.code_lines.append(
+                        f"{self.indent}result_data = [{{c: get_val(row, c) for c in [{col_list}]}} for row in result_data]"
+                    )
 
         elif op.op_type == "JOIN":
             table = op.params['table']
             on_cond = op.params['on']
-            
             self.code_lines.append(f"{self.indent}# Phase: JOIN \"{table}\"")
             self.code_lines.append(f"{self.indent}cur.execute('SELECT * FROM \"{table}\"')")
             self.code_lines.append(f"{self.indent}join_table_data = cur.fetchall()")
