@@ -44,13 +44,14 @@ class JoinNode(Node):
         self.on_condition = on_condition
 
 class SelectNode(Node):
-    def __init__(self, projections, from_table, joins=None, where=None, group_by=None, having=None):
-        self.projections = projections # List of strings, Identifiers, or Aggregates
+    def __init__(self, projections, from_table, joins=None, where=None, group_by=None, having=None, order_by=None):
+        self.projections = projections 
         self.from_table = from_table
         self.joins = joins or []
         self.where = where
         self.group_by = group_by
         self.having = having
+        self.order_by = order_by # Format: {'column': str, 'ascending': bool}
 
 class InsertNode(Node):
     def __init__(self, table: str, values: List[Any]):
@@ -77,6 +78,12 @@ class UpdateNode(Node):
         self.assignments = assignments # [{'column': str, 'value': Node}]
         self.where = where
 
+class SetOpNode(Node):
+    def __init__(self, left_query: SelectNode, op: str, right_query: SelectNode):
+        self.left = left_query
+        self.op = op.upper() # UNION, INTERSECT, EXCEPT
+        self.right = right_query
+        
 class ShowTablesNode(Node):
     def __init__(self):
         # This node is a simple flag for the planner 

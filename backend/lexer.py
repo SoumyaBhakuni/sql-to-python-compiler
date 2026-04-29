@@ -8,11 +8,13 @@ tokens = (
     'EQUALS', 'NEQ', 'GE', 'LE', 'GT', 'LT',
     'COMMA', 'LPAREN', 'RPAREN', 'SEMICOLON', 'DOT', 'STAR',
     'SELECT', 'FROM', 'WHERE', 'JOIN', 'ON', 'INNER', 'LEFT', 'RIGHT', 'FULL', 'CROSS',
-    'AND', 'OR', 'IN', 'BETWEEN', 'GROUP', 'BY', 'HAVING', 'INSERT', 'INTO', 'VALUES',
+    'AND', 'OR', 'IN', 'BETWEEN', 'GROUP', 'BY',
+    'AS',
+    'HAVING', 'INSERT', 'INTO', 'VALUES',
     'UPDATE', 'SET', 'DELETE', 'CREATE', 'TABLE', 'DROP', 'ALTER', 'ADD',
     'INT', 'TEXT', 'FLOAT', 'SUM', 'COUNT', 'AVG', 'MIN', 'MAX',
     'TRUE', 'FALSE',
-    'SHOW', 'TABLES'
+    'SHOW', 'TABLES', 'ORDER', 'BY', 'ASC', 'DESC', 'UNION', 'INTERSECT', 'EXCEPT', 'HAVING'
 )
 
 # 2. Reserved words dictionary
@@ -29,6 +31,16 @@ reserved = {
     'sum': 'SUM', 'count': 'COUNT', 'avg': 'AVG', 'min': 'MIN', 'max': 'MAX',
     'true': 'TRUE',
     'false': 'FALSE',
+    'show': 'SHOW',
+    'order': 'ORDER',
+    'as': 'AS',
+    'by': 'BY',
+    'asc': 'ASC',
+    'desc': 'DESC',
+    'union': 'UNION',
+    'intersect': 'INTERSECT',
+    'except': 'EXCEPT',
+    'having': 'HAVING',
     'show': 'SHOW',
     'tables': 'TABLES'
 }

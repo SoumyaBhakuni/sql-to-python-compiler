@@ -3,12 +3,12 @@ from lexer import tokens
 from models import (
     SelectNode, InsertNode, CreateTableNode, DropTableNode,
     DeleteNode, UpdateNode, ShowTablesNode,
-    IdentifierNode, LiteralNode, BinaryOpNode, JoinNode, AggregateNode
+    IdentifierNode, LiteralNode, BinaryOpNode, JoinNode, AggregateNode, SetOpNode
 )
 
 # --- 1. Operator Precedence ---
-# Ensures mathematical and logical operations follow standard SQL priority
 precedence = (
+    ('left', 'UNION', 'INTERSECT', 'EXCEPT'),
     ('left', 'OR'),
     ('left', 'AND'),
     ('left', 'EQUALS', 'NEQ', 'GE', 'LE', 'GT', 'LT'),
@@ -17,13 +17,13 @@ precedence = (
 )
 
 # --- 2. Top-Level Statements ---
-# FIX: Semicolon is now handled at the top level for ALL statement types
 def p_statement(p):
     '''statement : query_content opt_semicolon'''
     p[0] = p[1]
 
 def p_query_content(p):
-    '''query_content : select_stmt
+    '''query_content : select_statement
+                     | set_operation
                      | insert_stmt
                      | update_stmt
                      | delete_stmt
@@ -35,18 +35,76 @@ def p_query_content(p):
 def p_show_tables_stmt(p):
     'show_tables_stmt : SHOW TABLES'
     p[0] = ShowTablesNode()
-    
-# --- 3. SELECT Logic ---
-def p_select_stmt(p):
-    '''select_stmt : SELECT projections FROM IDENTIFIER opt_joins opt_where opt_groupby'''
+
+# Use a specific 'base' select to avoid the set_operation loop
+def p_select_statement(p):
+    '''select_statement : SELECT projections FROM from_clause opt_joins opt_where opt_groupby opt_orderby'''
     p[0] = SelectNode(
-        projections=p[2],
-        from_table=p[4],
-        joins=p[5],
-        where=p[6],
-        group_by=p[7]
+        projections=p[2], 
+        from_table=p[4], 
+        joins=p[5], 
+        where=p[6], 
+        group_by=p[7], 
+        order_by=p[8]
     )
 
+def p_from_clause(p):
+    '''from_clause : IDENTIFIER
+                   | LPAREN select_statement RPAREN
+                   | LPAREN select_statement RPAREN AS IDENTIFIER'''
+    
+    if len(p) == 2:
+        # Simple table name (e.g., FROM Students)
+        p[0] = p[1]
+    elif len(p) == 4:
+        # Subquery without an alias
+        p[0] = p[2]
+    elif len(p) == 6:
+        # Subquery with an alias (e.g., FROM (SELECT...) AS top_students)
+        # We pass the parsed SelectNode forward. (You can also save the alias if your planner needs it!)
+        p[0] = p[2]
+        
+def p_set_operation(p):
+    '''set_operation : select_statement UNION select_statement
+                     | select_statement INTERSECT select_statement
+                     | select_statement EXCEPT select_statement'''
+    p[0] = SetOpNode(p[1], p[2], p[3])
+
+# --- 3. Clauses (WHERE, GROUP BY, ORDER BY) ---
+def p_opt_orderby(p):
+    '''opt_orderby : ORDER BY IDENTIFIER opt_asc_desc
+                   | empty'''
+    if len(p) == 5: # FIXED: Only run if all 4 tokens exist (plus p[0])
+        p[0] = {"column": p[3], "ascending": p[4]}
+    else:
+        p[0] = None
+
+def p_opt_asc_desc(p):
+    '''opt_asc_desc : ASC
+                    | DESC
+                    | empty'''
+    if p[1] and p[1].upper() == 'DESC': # FIXED: Safely check if p[1] exists
+        p[0] = False
+    else:
+        p[0] = True 
+
+def p_opt_groupby(p):
+    '''opt_groupby : GROUP BY qualified_id opt_having
+                   | empty'''
+    if len(p) == 5: # FIXED
+        p[0] = {'column': p[3], 'having': p[4]}
+    else:
+        p[0] = None
+
+def p_opt_having(p):
+    '''opt_having : HAVING expression
+                  | empty'''
+    if len(p) == 3: # FIXED
+        p[0] = p[2]
+    else:
+        p[0] = None
+
+# --- 4. Projections & Aggregates ---
 def p_projections_all(p):
     'projections : STAR'
     p[0] = ["*"]
@@ -72,7 +130,7 @@ def p_aggregate_func(p):
                       | MAX LPAREN qualified_id RPAREN'''
     p[0] = AggregateNode(func=p[1], column=p[3])
 
-# --- 4. JOIN Logic ---
+# --- 5. JOIN Logic ---
 def p_opt_joins(p):
     '''opt_joins : join_list
                  | empty'''
@@ -99,11 +157,10 @@ def p_join_type(p):
                  | empty'''
     p[0] = p[1] if p[1] else "INNER"
 
-# --- 5. Expressions (WHERE & Math) ---
 def p_opt_where(p):
     '''opt_where : WHERE expression
                  | empty'''
-    if len(p) > 2:
+    if len(p) == 3: # FIXED
         p[0] = p[2]
     else:
         p[0] = None
@@ -148,7 +205,7 @@ def p_qualified_id(p):
     else:
         p[0] = IdentifierNode(name=p[1])
 
-# --- 6. DDL & DML ---
+# --- 7. DDL & DML ---
 def p_create_stmt(p):
     'create_stmt : CREATE TABLE IDENTIFIER LPAREN column_defs RPAREN'
     p[0] = CreateTableNode(table_name=p[3], columns=p[5])
@@ -207,15 +264,7 @@ def p_drop_stmt(p):
     'drop_stmt : DROP TABLE IDENTIFIER'
     p[0] = DropTableNode(table_name=p[3])
 
-# --- 7. Boilerplate & Error ---
-def p_opt_groupby(p):
-    '''opt_groupby : GROUP BY qualified_id
-                   | empty'''
-    if len(p) > 2:
-        p[0] = [p[3]]
-    else:
-        p[0] = None
-
+# --- 8. Boilerplate ---
 def p_opt_semicolon(p):
     '''opt_semicolon : SEMICOLON
                      | empty'''
