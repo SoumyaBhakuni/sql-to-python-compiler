@@ -4,14 +4,15 @@ import ply.lex as lex
 # FIX: Added 'TRUE' and 'FALSE' to this tuple so the Parser can recognize them
 tokens = (
     'NUMBER', 'STRING', 'IDENTIFIER',
-    'PLUS', 'MINUS', 'TIMES', 'DIVIDE',
+    'PLUS', 'MINUS', 'DIVIDE',
     'EQUALS', 'NEQ', 'GE', 'LE', 'GT', 'LT',
     'COMMA', 'LPAREN', 'RPAREN', 'SEMICOLON', 'DOT', 'STAR',
     'SELECT', 'FROM', 'WHERE', 'JOIN', 'ON', 'INNER', 'LEFT', 'RIGHT', 'FULL', 'CROSS',
     'AND', 'OR', 'IN', 'BETWEEN', 'GROUP', 'BY', 'HAVING', 'INSERT', 'INTO', 'VALUES',
     'UPDATE', 'SET', 'DELETE', 'CREATE', 'TABLE', 'DROP', 'ALTER', 'ADD',
     'INT', 'TEXT', 'FLOAT', 'SUM', 'COUNT', 'AVG', 'MIN', 'MAX',
-    'TRUE', 'FALSE' 
+    'TRUE', 'FALSE',
+    'SHOW', 'TABLES'
 )
 
 # 2. Reserved words dictionary
@@ -27,13 +28,14 @@ reserved = {
     'int': 'INT', 'text': 'TEXT', 'float': 'FLOAT',
     'sum': 'SUM', 'count': 'COUNT', 'avg': 'AVG', 'min': 'MIN', 'max': 'MAX',
     'true': 'TRUE',
-    'false': 'FALSE'
+    'false': 'FALSE',
+    'show': 'SHOW',
+    'tables': 'TABLES'
 }
 
 # 3. Simple regex rules for operators and delimiters
 t_PLUS      = r'\+'
 t_MINUS     = r'-'
-t_TIMES     = r'\*'
 t_STAR      = r'\*' 
 t_DIVIDE    = r'/'
 t_EQUALS    = r'='

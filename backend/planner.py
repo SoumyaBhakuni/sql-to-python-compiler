@@ -20,9 +20,18 @@ class QueryPlanner:
         """Converts a SelectNode AST into a Relational Algebra Tree."""
         node_type = ast_node.__class__.__name__
         
-        if node_type != "SelectNode":
-            # For INSERT/CREATE/DROP, the 'Plan' is just the AST itself.
-            return ast_node
+        if node_type == "InsertNode":
+            return RelationalOp("INSERT", params={'table': ast_node.table, 'values': ast_node.values})
+        elif node_type == "DeleteNode":
+            return RelationalOp("DELETE", params={'table': ast_node.table, 'condition': ast_node.where})
+        elif node_type == "UpdateNode":
+            return RelationalOp("UPDATE", params={'table': ast_node.table, 'assigns': ast_node.assignments, 'condition': ast_node.where})
+        elif node_type == "CreateTableNode":
+            return RelationalOp("CREATE", params={'table': ast_node.table_name, 'columns': ast_node.columns})
+        elif node_type == "DropTableNode":
+            return RelationalOp("DROP", params={'table': ast_node.table_name})
+        elif node_type == "ShowTablesNode":
+            return RelationalOp("METADATA", params={"type": "SHOW_TABLES"})
 
         # --- 1. LEAF: Table Scan ---
         # The foundation of every SELECT is scanning the base table.

@@ -33,7 +33,7 @@ class CodeGenerator:
         return "\n".join(self.code_lines)
 
     def _build_python_expr(self, node):
-        """Recursively converts AST nodes into Null-safe Python strings."""
+        """Recursively converts AST nodes into Null-safe Python strings for SELECT filters."""
         if hasattr(node, 'name'):
            return f"get_val(row, '{node.name}')"
     
@@ -47,13 +47,24 @@ class CodeGenerator:
             op_map = {'=': '==', 'AND': 'and', 'OR': 'or', 'NEQ': '!='}
             py_op = op_map.get(node.op.upper(), node.op)
         
-            # Null-safety check for comparison operators
             if py_op in ['<', '>', '<=', '>=', '==', '!=']:
                return f"({left_part} is not None and {left_part} {py_op} {right_part})"
         
             return f"({left_part} {py_op} {right_part})"
     
         return "True"
+
+    def _build_sql_where(self, node):
+        """Helper to translate AST conditions back to SQL strings for DELETE/UPDATE."""
+        if not node: return ""
+        if hasattr(node, 'name'):
+            # FIX: Use escaped double quotes for SQL identifiers
+            return f"\\\"{node.name}\\\""
+        if hasattr(node, 'value'):
+            return repr(node.value)
+        if hasattr(node, 'left') and hasattr(node, 'right'):
+            return f"({self._build_sql_where(node.left)} {node.op} {self._build_sql_where(node.right)})"
+        return ""
 
     def _translate_op(self, op):
         if not op:
@@ -72,34 +83,22 @@ class CodeGenerator:
             cond = op.params['condition']
             py_expression = self._build_python_expr(cond)
             self.code_lines.append(f"{self.indent}# Phase: FILTER (Complex Expression)")
-            self.code_lines.append(
-                f"{self.indent}result_data = [row for row in result_data if {py_expression}]"
-            )
+            self.code_lines.append(f"{self.indent}result_data = [row for row in result_data if {py_expression}]")
 
         elif op.op_type == "PROJECT":
             cols = op.params['columns']
             self.code_lines.append(f"{self.indent}# Phase: PROJECT & AGGREGATE")
-        
             has_aggregates = any(hasattr(c, 'func') for c in cols)
-        
             if has_aggregates:
                 self.code_lines.append(f"{self.indent}agg_results = {{}}")
                 for col in cols:
                     if hasattr(col, 'func'):
-                        func = col.func.upper()
-                        c_name = col.column.name
-                        
-                        # Key name standardized to lowercase to match standard SQL output format
-                        key_name = func.lower() 
-                        
+                        func, c_name = col.func.upper(), col.column.name
+                        key_name = func.lower()
                         if func == 'COUNT':
                             self.code_lines.append(f"{self.indent}agg_results['{key_name}'] = len(result_data)")
                         elif func == 'SUM':
-                            self.code_lines.append(
-                                f"{self.indent}agg_results['sum'] = sum("
-                                f"float(get_val(r, '{c_name}')) for r in result_data "
-                                f"if get_val(r, '{c_name}') is not None)"
-                            )
+                            self.code_lines.append(f"{self.indent}agg_results['sum'] = sum(float(get_val(r, '{c_name}')) for r in result_data if get_val(r, '{c_name}') is not None)")
                 self.code_lines.append(f"{self.indent}result_data = [agg_results]")
             else:
                 col_names = [c.name if hasattr(c, 'name') else str(c) for c in cols]
@@ -107,27 +106,78 @@ class CodeGenerator:
                     self.code_lines.append(f"{self.indent}# Keep all columns (SELECT *)")
                 else:
                     col_list = ", ".join([f"'{c}'" for c in col_names])
-                    self.code_lines.append(
-                        f"{self.indent}result_data = [{{c: get_val(row, c) for c in [{col_list}]}} for row in result_data]"
-                    )
+                    self.code_lines.append(f"{self.indent}result_data = [{{c: get_val(row, c) for c in [{col_list}]}} for row in result_data]")
 
         elif op.op_type == "JOIN":
-            table = op.params['table']
-            on_cond = op.params['on']
+            table, on_cond = op.params['table'], op.params['on']
             self.code_lines.append(f"{self.indent}# Phase: JOIN \"{table}\"")
             self.code_lines.append(f"{self.indent}cur.execute('SELECT * FROM \"{table}\"')")
             self.code_lines.append(f"{self.indent}join_table_data = cur.fetchall()")
             self.code_lines.append(f"{self.indent}joined_results = []")
-            
-            left_key = on_cond.left.name
-            right_key = on_cond.right.name
-            
+            l_key, r_key = on_cond.left.name, on_cond.right.name
             self.code_lines.append(f"{self.indent}for r1 in result_data:")
             self.code_lines.append(f"{self.indent}{self.indent}for r2 in join_table_data:")
-            self.code_lines.append(
-                f"{self.indent}{self.indent}{self.indent}if get_val(r1, '{left_key}') == get_val(r2, '{right_key}'):"
-            )
-            self.code_lines.append(
-                f"{self.indent}{self.indent}{self.indent}{self.indent}joined_results.append({{**r1, **r2}})"
-            )
+            self.code_lines.append(f"{self.indent}{self.indent}{self.indent}if get_val(r1, '{l_key}') == get_val(r2, '{r_key}'):")
+            self.code_lines.append(f"{self.indent}{self.indent}{self.indent}{self.indent}joined_results.append({{**r1, **r2}})")
             self.code_lines.append(f"{self.indent}result_data = joined_results")
+
+        elif op.op_type == "INSERT":
+            table, vals = op.params['table'], op.params['values']
+            clean_vals = [v.value if hasattr(v, 'value') else v for v in vals]
+            val_str = ", ".join([repr(x) for x in clean_vals])
+            
+            self.code_lines.append(f"{self.indent}# Phase: INSERT")
+            # Using double quotes for the python string, and escaped double quotes for SQL table names
+            self.code_lines.append(f"{self.indent}sql = f\"INSERT INTO \\\"{table}\\\" VALUES ({val_str})\"")
+            self.code_lines.append(f"{self.indent}cur.execute(sql)")
+            self.code_lines.append(f"{self.indent}conn.commit()")
+            self.code_lines.append(f"{self.indent}result_data = [{{'status': 'success', 'message': 'Row inserted'}}]")
+
+        elif op.op_type == "DELETE":
+            table, cond = op.params['table'], op.params['condition']
+            where_sql = f" WHERE {self._build_sql_where(cond)}" if cond else ""
+            self.code_lines.append(f"{self.indent}# Phase: DELETE")
+            self.code_lines.append(f"{self.indent}sql = f\"DELETE FROM \\\"{table}\\\"{where_sql}\"")
+            self.code_lines.append(f"{self.indent}cur.execute(sql)")
+            self.code_lines.append(f"{self.indent}conn.commit()")
+            self.code_lines.append(f"{self.indent}result_data = [{{'status': 'success', 'rows': cur.rowcount}}]")
+
+        elif op.op_type == "UPDATE":
+            table, assigns, cond = op.params['table'], op.params['assigns'], op.params['condition']
+            
+            formatted_assigns = []
+            for a in assigns:
+                val = a["value"].value if hasattr(a["value"], "value") else a["value"]
+                # FIX: Use escaped double quotes here too
+                formatted_assigns.append(f'\\\"{a["column"]}\\\" = {repr(val)}')
+            
+            set_clause = ", ".join(formatted_assigns)
+            where_sql = f" WHERE {self._build_sql_where(cond)}" if cond else ""
+            
+            self.code_lines.append(f"{self.indent}# Phase: UPDATE")
+            # This generates: sql = f"UPDATE \"Table\" SET \"Col\" = Val WHERE (\"Col2\" = Val)"
+            self.code_lines.append(f"{self.indent}sql = f\"UPDATE \\\"{table}\\\" SET {set_clause}{where_sql}\"")
+            self.code_lines.append(f"{self.indent}cur.execute(sql)")
+            self.code_lines.append(f"{self.indent}conn.commit()")
+            self.code_lines.append(f"{self.indent}result_data = [{{'status': 'success', 'rows': cur.rowcount}}]")
+            
+        elif op.op_type == "CREATE":
+            table, cols = op.params['table'], op.params['columns']
+            col_defs = ", ".join([f'"{c["name"]}" {c["type"]}' for c in cols])
+            self.code_lines.append(f"{self.indent}# Phase: CREATE TABLE")
+            self.code_lines.append(f"{self.indent}cur.execute('CREATE TABLE \"{table}\" ({col_defs})')")
+            self.code_lines.append(f"{self.indent}conn.commit()")
+            self.code_lines.append(f"{self.indent}result_data = [{{'status': 'success', 'table': '{table}'}}]")
+
+        elif op.op_type == "DROP":
+            table = op.params['table']
+            self.code_lines.append(f"{self.indent}try:")
+            self.code_lines.append(f"{self.indent}{self.indent}cur.execute('DROP TABLE \"{table}\"')")
+            self.code_lines.append(f"{self.indent}{self.indent}result_data = [{{'status': 'success', 'message': 'Dropped {table}'}}]")
+            self.code_lines.append(f"{self.indent}except psycopg2.errors.UndefinedTable:")
+            self.code_lines.append(f"{self.indent}{self.indent}result_data = [{{'status': 'error', 'message': 'Table {table} did not exist'}}]")
+
+        elif op.op_type == "METADATA":
+            self.code_lines.append(f"{self.indent}# Phase: METADATA DISCOVERY")
+            self.code_lines.append(f"{self.indent}cur.execute(\"SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'\")")
+            self.code_lines.append(f"{self.indent}result_data = cur.fetchall()")
