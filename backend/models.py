@@ -65,3 +65,20 @@ class CreateTableNode(Node):
 class DropTableNode(Node):
     def __init__(self, table_name: str):
         self.table_name = table_name
+        
+class DeleteNode(Node):
+    def __init__(self, table: str, where: Optional[Node] = None):
+        self.table = table
+        self.where = where
+
+class UpdateNode(Node):
+    def __init__(self, table: str, assignments: List[dict], where: Optional[Node] = None):
+        self.table = table
+        self.assignments = assignments # [{'column': str, 'value': Node}]
+        self.where = where
+
+class ShowTablesNode(Node):
+    def __init__(self):
+        # This node is a simple flag for the planner 
+        # to trigger metadata discovery logic.
+        pass

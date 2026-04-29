@@ -22,11 +22,6 @@ function App() {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Clear execution terminals when user starts typing a new query to avoid stale data
-  useEffect(() => {
-    resetExecution();
-  }, [sql]);
-
   return (
     <div className="h-screen w-full bg-slate-900 text-slate-100 flex flex-col overflow-hidden font-sans">
       {/* Header */}
@@ -96,10 +91,13 @@ function App() {
         <div className="w-80 flex flex-col items-center justify-center bg-slate-900 z-10 border-r border-slate-800 shadow-2xl relative">
           <div className="absolute top-4 text-[10px] text-slate-500 font-bold uppercase tracking-widest">Compiler Core</div>
           <ActionCircle
-            status={status}
-            stage={currentStage}
-            onClick={() => compile(sql)}
-          />
+  status={status}
+  stage={currentStage}
+  onClick={() => {
+    resetExecution(); // Reset only when starting a new compilation
+    compile(sql);
+  }}
+/>
         </div>
 
         {/* Right Panel: Target Python Code & Compiled Terminal */}
@@ -108,7 +106,11 @@ function App() {
             <span className="text-slate-500 uppercase tracking-widest">Output: Generated Python Plan</span>
             {status === "SUCCESS" && (
               <button 
-                onClick={() => executePython(sql)}
+                onClick={() => {
+    if (status === "SUCCESS") {
+      executePython(sql); // Or executePython() if your hook doesn't need the string
+    }
+  }}
                 className="bg-purple-600 hover:bg-purple-500 text-white px-3 py-1 rounded-sm text-[10px] font-bold flex items-center gap-1.5 transition shadow-lg"
               >
                 <Play size={12} /> RUN PYTHON

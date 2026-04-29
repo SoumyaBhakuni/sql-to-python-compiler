@@ -2,29 +2,43 @@ import ply.yacc as yacc
 from lexer import tokens
 from models import (
     SelectNode, InsertNode, CreateTableNode, DropTableNode,
+    DeleteNode, UpdateNode, ShowTablesNode,
     IdentifierNode, LiteralNode, BinaryOpNode, JoinNode, AggregateNode
 )
 
 # --- 1. Operator Precedence ---
+# Ensures mathematical and logical operations follow standard SQL priority
 precedence = (
     ('left', 'OR'),
     ('left', 'AND'),
     ('left', 'EQUALS', 'NEQ', 'GE', 'LE', 'GT', 'LT'),
     ('left', 'PLUS', 'MINUS'),
-    ('left', 'TIMES', 'DIVIDE', 'STAR'),
+    ('left', 'STAR', 'DIVIDE'),
 )
 
 # --- 2. Top-Level Statements ---
+# FIX: Semicolon is now handled at the top level for ALL statement types
 def p_statement(p):
-    '''statement : select_stmt
-                 | insert_stmt
-                 | create_stmt
-                 | drop_stmt'''
+    '''statement : query_content opt_semicolon'''
     p[0] = p[1]
 
+def p_query_content(p):
+    '''query_content : select_stmt
+                     | insert_stmt
+                     | update_stmt
+                     | delete_stmt
+                     | create_stmt
+                     | drop_stmt
+                     | show_tables_stmt'''
+    p[0] = p[1]
+
+def p_show_tables_stmt(p):
+    'show_tables_stmt : SHOW TABLES'
+    p[0] = ShowTablesNode()
+    
 # --- 3. SELECT Logic ---
 def p_select_stmt(p):
-    '''select_stmt : SELECT projections FROM IDENTIFIER opt_joins opt_where opt_groupby opt_semicolon'''
+    '''select_stmt : SELECT projections FROM IDENTIFIER opt_joins opt_where opt_groupby'''
     p[0] = SelectNode(
         projections=p[2],
         from_table=p[4],
@@ -45,7 +59,6 @@ def p_projections_list(p):
     else:
         p[0] = p[1] + [p[3]]
 
-# --- Updated to handle Qualified Projections (Table.Column) ---
 def p_projection_item(p):
     '''projection_item : qualified_id
                        | aggregate_func'''
@@ -106,18 +119,16 @@ def p_expression_binop(p):
                   | expression OR expression
                   | expression PLUS expression
                   | expression MINUS expression
-                  | expression TIMES expression
+                  | expression STAR expression
                   | expression DIVIDE expression'''
     p[0] = BinaryOpNode(left=p[1], op=p[2], right=p[3])
 
-# --- Updated to handle Qualified Identifiers in Expressions ---
 def p_expression_term(p):
     '''expression : qualified_id
                   | NUMBER
                   | STRING
                   | TRUE
                   | FALSE'''
-    # This logic matches your LiteralNode implementation
     if p.slice[1].type == 'NUMBER':
         p[0] = LiteralNode(p[1], 'NUMBER')
     elif p.slice[1].type == 'STRING':
@@ -129,7 +140,6 @@ def p_expression_term(p):
     else:
         p[0] = p[1]
 
-# --- NEW: Rule for Table.Column syntax ---
 def p_qualified_id(p):
     '''qualified_id : IDENTIFIER DOT IDENTIFIER
                     | IDENTIFIER'''
@@ -173,6 +183,26 @@ def p_value_list(p):
     else:
         p[0] = p[1] + [p[3]]
 
+def p_delete_stmt(p):
+    'delete_stmt : DELETE FROM IDENTIFIER opt_where'
+    p[0] = DeleteNode(table=p[3], where=p[4])
+
+def p_update_stmt(p):
+    'update_stmt : UPDATE IDENTIFIER SET assignment_list opt_where'
+    p[0] = UpdateNode(table=p[2], assignments=p[4], where=p[5])
+
+def p_assignment_list(p):
+    '''assignment_list : assignment
+                       | assignment_list COMMA assignment'''
+    if len(p) == 2:
+        p[0] = [p[1]]
+    else:
+        p[0] = p[1] + [p[3]]
+
+def p_assignment(p):
+    'assignment : IDENTIFIER EQUALS expression'
+    p[0] = {'column': p[1], 'value': p[3]}
+
 def p_drop_stmt(p):
     'drop_stmt : DROP TABLE IDENTIFIER'
     p[0] = DropTableNode(table_name=p[3])
@@ -201,6 +231,7 @@ def p_error(p):
     else:
         raise SyntaxError("Syntax Error: Unexpected end of input")
 
+# Build the parser
 parser = yacc.yacc()
 
 def parse_sql(data):

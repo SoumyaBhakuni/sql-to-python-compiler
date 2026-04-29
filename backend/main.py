@@ -89,39 +89,39 @@ async def run_ground_truth(request: QueryRequest):
 
 @app.post("/execute/python")
 async def run_compiled_logic(request: QueryRequest):
-    """Triggered by 'RUN PYTHON' button. Also performs cross-validation."""
     try:
-        # 1. Get SQL result for validation reference
-        sql_result = db.execute_raw_sql(request.sql)
+        # 1. Identify if this query modifies data
+        cmd = request.sql.strip().upper()
+        is_mutation = any(cmd.startswith(x) for x in ["INSERT", "UPDATE", "DELETE", "CREATE", "DROP"])
 
-        # 2. Compile to get Python script
+        sql_result = None
+        # Only run the Ground Truth if it's a SELECT (read-only)
+        # Mutations should NOT be run twice.
+        if not is_mutation:
+            sql_result = db.execute_raw_sql(request.sql)
+
+        # 2. Compile and Execute Python (The actual test)
         ast = parse_sql(request.sql)
         plan = QueryOptimizer().optimize(QueryPlanner().create_plan(ast))
         python_script = CodeGenerator().generate(plan)
-
-        # 3. Execution environment setup
-        exec_globals = {
-            "psycopg2": psycopg2, 
-            "RealDictCursor": RealDictCursor, 
-            "__builtins__": __builtins__
-        }
-        local_scope = {}
         
-        # 4. Execute generated code
+        exec_globals = {"psycopg2": psycopg2, "RealDictCursor": RealDictCursor, "__builtins__": __builtins__}
+        local_scope = {}
         exec(python_script, exec_globals, local_scope)
         python_result = local_scope['execute_compiled_query'](DATABASE_URL)
 
-        # 5. Cross-check against SQL Ground Truth
-        is_valid, message = CompilerValidator.validate(sql_result, python_result)
+        # 3. Validation Logic
+        if is_mutation:
+            # For mutations, we just confirm it worked
+            return {"is_valid": True, "message": "Mutation executed successfully via Python", "python_output": python_result}
+        else:
+            # For SELECT, we compare the two results
+            is_valid, message = CompilerValidator.validate(sql_result, python_result)
+            return {"is_valid": is_valid, "message": message, "python_output": python_result}
 
-        return {
-            "is_valid": is_valid,
-            "message": message,
-            "python_output": python_result
-        }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Python Execution Error: {str(e)}")
-
+        raise HTTPException(status_code=400, detail=str(e))
+    
 class ValidationRequest(BaseModel):
     sql_data: list
     python_data: list
