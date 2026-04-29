@@ -21,7 +21,8 @@ function App() {
   } = useCompiler();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false); // Gatekeeper state
+  
   return (
     <div className="h-screen w-full bg-slate-900 text-slate-100 flex flex-col overflow-hidden font-sans">
       {/* Header */}
@@ -30,7 +31,7 @@ function App() {
           <h1 className="text-xl font-black tracking-tighter text-blue-400">
             SQL <span className="text-white">TO</span> PYTHON{" "}
             <span className="text-[10px] bg-blue-500/20 px-2 py-1 rounded text-blue-300 ml-2 border border-blue-500/30">
-              LALR ENGINE v1.0
+              LALR ENGINE v2.0
             </span>
           </h1>
         </div>
@@ -55,10 +56,18 @@ function App() {
             <span className="text-slate-500 uppercase tracking-widest">Input: Raw SQL Query</span>
             {status === "SUCCESS" && (
               <button 
-                onClick={() => executeSql(sql)}
-                className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded-sm text-[10px] font-bold flex items-center gap-1.5 transition shadow-lg"
+                disabled={isLoading}
+                onClick={async () => {
+                  setIsLoading(true);
+                  try {
+                    await executeSql(sql);
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                className={`bg-blue-600 text-white px-3 py-1 rounded-sm text-[10px] font-bold flex items-center gap-1.5 transition shadow-lg ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-500'}`}
               >
-                <Database size={12} /> RUN SQL
+                <Database size={12} /> {isLoading ? "RUNNING..." : "RUN SQL"}
               </button>
             )}
           </div>
@@ -91,13 +100,13 @@ function App() {
         <div className="w-80 flex flex-col items-center justify-center bg-slate-900 z-10 border-r border-slate-800 shadow-2xl relative">
           <div className="absolute top-4 text-[10px] text-slate-500 font-bold uppercase tracking-widest">Compiler Core</div>
           <ActionCircle
-  status={status}
-  stage={currentStage}
-  onClick={() => {
-    resetExecution(); // Reset only when starting a new compilation
-    compile(sql);
-  }}
-/>
+            status={status}
+            stage={currentStage}
+            onClick={() => {
+              resetExecution();
+              compile(sql);
+            }}
+          />
         </div>
 
         {/* Right Panel: Target Python Code & Compiled Terminal */}
@@ -106,14 +115,20 @@ function App() {
             <span className="text-slate-500 uppercase tracking-widest">Output: Generated Python Plan</span>
             {status === "SUCCESS" && (
               <button 
-                onClick={() => {
-    if (status === "SUCCESS") {
-      executePython(sql); // Or executePython() if your hook doesn't need the string
-    }
-  }}
-                className="bg-purple-600 hover:bg-purple-500 text-white px-3 py-1 rounded-sm text-[10px] font-bold flex items-center gap-1.5 transition shadow-lg"
+                disabled={isLoading}
+                onClick={async () => {
+                  if (status === "SUCCESS") {
+                    setIsLoading(true);
+                    try {
+                      await executePython(sql);
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }
+                }}
+                className={`bg-purple-600 text-white px-3 py-1 rounded-sm text-[10px] font-bold flex items-center gap-1.5 transition shadow-lg ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-500'}`}
               >
-                <Play size={12} /> RUN PYTHON
+                <Play size={12} /> {isLoading ? "EXECUTING..." : "RUN PYTHON"}
               </button>
             )}
           </div>

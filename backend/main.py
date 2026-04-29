@@ -1,4 +1,5 @@
 import os
+import copy
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from fastapi import FastAPI, HTTPException
@@ -58,8 +59,13 @@ async def compile_sql(request: QueryRequest):
         schema = db.get_schema()
         SemanticAnalyzer(schema).analyze(ast_root)
 
-        # Planning & Optimization
+        # Planning
         logical_plan = QueryPlanner().create_plan(ast_root)
+        
+        # --- THE FIX: Freeze the unoptimized plan ---
+        unoptimized_plan_copy = copy.deepcopy(logical_plan)
+        
+        # Optimization
         optimized_plan = QueryOptimizer().optimize(logical_plan)
 
         # CodeGen
@@ -70,7 +76,7 @@ async def compile_sql(request: QueryRequest):
             "stages": {
                 "lexer": token_list,
                 "parser": ast_root.to_dict(),
-                "planner": logical_plan.to_dict() if hasattr(logical_plan, 'to_dict') else str(logical_plan),
+                "planner": unoptimized_plan_copy.to_dict() if hasattr(unoptimized_plan_copy, 'to_dict') else str(unoptimized_plan_copy),
                 "optimizer": optimized_plan.to_dict() if hasattr(optimized_plan, 'to_dict') else str(optimized_plan),
                 "codegen": python_code
             }
@@ -105,7 +111,13 @@ async def run_compiled_logic(request: QueryRequest):
         plan = QueryOptimizer().optimize(QueryPlanner().create_plan(ast))
         python_script = CodeGenerator().generate(plan)
         
-        exec_globals = {"psycopg2": psycopg2, "RealDictCursor": RealDictCursor, "__builtins__": __builtins__}
+        exec_globals = {
+            "psycopg2": psycopg2, 
+            "RealDictCursor": RealDictCursor, 
+            "__builtins__": __builtins__,
+            # Explicitly include errors for the generated try/except blocks
+            "DatabaseError": psycopg2.DatabaseError 
+        }
         local_scope = {}
         exec(python_script, exec_globals, local_scope)
         python_result = local_scope['execute_compiled_query'](DATABASE_URL)

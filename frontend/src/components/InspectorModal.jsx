@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Cpu, GitBranch, Workflow, Database, Code, Copy, Check } from 'lucide-react';
+import { X, Cpu, GitBranch, Workflow, Database, Code, Copy, Check, Zap } from 'lucide-react';
 
 const InspectorModal = ({ data, onClose }) => {
   const [activeTab, setActiveTab] = useState('TOKENS');
@@ -24,33 +24,39 @@ const InspectorModal = ({ data, onClose }) => {
         
         {/* Modal Header */}
         <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
-          <div className="flex gap-4">
+          <div className="flex gap-4 overflow-x-auto">
             <button 
               onClick={() => setActiveTab('TOKENS')}
-              className={`flex items-center gap-2 px-4 py-2 rounded text-xs font-bold transition ${activeTab === 'TOKENS' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded text-xs font-bold transition whitespace-nowrap ${activeTab === 'TOKENS' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}
             >
               <Cpu size={14} /> 1. LEXER
             </button>
             <button 
               onClick={() => setActiveTab('AST')}
-              className={`flex items-center gap-2 px-4 py-2 rounded text-xs font-bold transition ${activeTab === 'AST' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded text-xs font-bold transition whitespace-nowrap ${activeTab === 'AST' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}
             >
               <GitBranch size={14} /> 2. PARSER
             </button>
             <button 
               onClick={() => setActiveTab('IR')}
-              className={`flex items-center gap-2 px-4 py-2 rounded text-xs font-bold transition ${activeTab === 'IR' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded text-xs font-bold transition whitespace-nowrap ${activeTab === 'IR' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}
             >
               <Workflow size={14} /> 3. PLANNER
             </button>
             <button 
-              onClick={() => setActiveTab('CODEGEN')}
-              className={`flex items-center gap-2 px-4 py-2 rounded text-xs font-bold transition ${activeTab === 'CODEGEN' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}
+              onClick={() => setActiveTab('OPTIMIZER')}
+              className={`flex items-center gap-2 px-4 py-2 rounded text-xs font-bold transition whitespace-nowrap ${activeTab === 'OPTIMIZER' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}
             >
-              <Code size={14} /> 4. CODEGEN
+              <Zap size={14} /> 4. OPTIMIZER
+            </button>
+            <button 
+              onClick={() => setActiveTab('CODEGEN')}
+              className={`flex items-center gap-2 px-4 py-2 rounded text-xs font-bold transition whitespace-nowrap ${activeTab === 'CODEGEN' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}
+            >
+              <Code size={14} /> 5. CODEGEN
             </button>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors">
+          <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors ml-4 shrink-0">
             <X size={24} />
           </button>
         </div>
@@ -61,7 +67,7 @@ const InspectorModal = ({ data, onClose }) => {
           {/* 1. LEXER TOKENS */}
           {activeTab === 'TOKENS' && (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2">
-              {data.lexer.map((t, i) => (
+              {data.lexer?.map((t, i) => (
                 <div key={i} className="p-2 border border-slate-800 rounded bg-slate-900 flex flex-col">
                   <span className="text-blue-400 text-[10px] font-bold mb-1">{t.type}</span>
                   <span className="text-slate-200 truncate" title={t.value}>{t.value}</span>
@@ -88,7 +94,16 @@ const InspectorModal = ({ data, onClose }) => {
             </div>
           )}
 
-          {/* 4. PYTHON CODEGEN */}
+          {/* 4. OPTIMIZER */}
+          {activeTab === 'OPTIMIZER' && (
+            <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-800">
+                <pre className="text-amber-400 leading-relaxed whitespace-pre-wrap">
+                {JSON.stringify(data.optimizer, null, 2)}
+                </pre>
+            </div>
+          )}
+
+          {/* 5. PYTHON CODEGEN */}
           {activeTab === 'CODEGEN' && (
             <div className="relative group">
                 <button 
