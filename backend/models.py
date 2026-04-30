@@ -1,18 +1,28 @@
+# models.py
 from typing import List, Optional, Any, Union
 
 class Node:
     """Base class for all Abstract Syntax Tree nodes."""
     def to_dict(self):
-        """Helper for JSON serialization for the React Visualizer."""
-        data = {"node_type": self.__class__.__name__}
-        for k, v in self.__dict__.items():
-            if hasattr(v, 'to_dict'):
-                data[k] = v.to_dict()
-            elif isinstance(v, list):
-                data[k] = [i.to_dict() if hasattr(i, 'to_dict') else i for i in v]
+        """Dynamically serializes any AST node for the React Visualizer."""
+        result = {"node_type": self.__class__.__name__}
+        
+        # vars(self) gets all attributes (like 'where', 'projections', 'joins')
+        for key, value in vars(self).items():
+            if isinstance(value, Node):
+                # Recursively convert child nodes
+                result[key] = value.to_dict()
+            elif isinstance(value, list):
+                # Convert lists of nodes (like projections or joins)
+                result[key] = [
+                    item.to_dict() if isinstance(item, Node) else item 
+                    for item in value
+                ]
             else:
-                data[k] = v
-        return data
+                # Base types (strings, ints, booleans)
+                result[key] = value
+                
+        return result
 
 class ExpressionNode(Node): pass
 
@@ -44,14 +54,16 @@ class JoinNode(Node):
         self.on_condition = on_condition
 
 class SelectNode(Node):
-    def __init__(self, projections, from_table, joins=None, where=None, group_by=None, having=None, order_by=None):
+    # FIX: Ensure limit=None is physically inside these parentheses!
+    def __init__(self, projections, from_table, joins=None, where=None, group_by=None, having=None, order_by=None, limit=None):
         self.projections = projections 
         self.from_table = from_table
         self.joins = joins or []
         self.where = where
         self.group_by = group_by
         self.having = having
-        self.order_by = order_by # Format: {'column': str, 'ascending': bool}
+        self.order_by = order_by 
+        self.limit = limit # Now this will work perfectly!
 
 class InsertNode(Node):
     def __init__(self, table: str, values: List[Any]):
@@ -83,6 +95,11 @@ class SetOpNode(Node):
         self.left = left_query
         self.op = op.upper() # UNION, INTERSECT, EXCEPT
         self.right = right_query
+        
+class AliasNode(ExpressionNode):
+    def __init__(self, expr, alias: str):
+        self.expr = expr
+        self.alias = alias
         
 class ShowTablesNode(Node):
     def __init__(self):

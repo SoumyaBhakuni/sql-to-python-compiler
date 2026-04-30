@@ -14,7 +14,9 @@ tokens = (
     'UPDATE', 'SET', 'DELETE', 'CREATE', 'TABLE', 'DROP', 'ALTER', 'ADD',
     'INT', 'TEXT', 'FLOAT', 'SUM', 'COUNT', 'AVG', 'MIN', 'MAX',
     'TRUE', 'FALSE',
-    'SHOW', 'TABLES', 'ORDER', 'BY', 'ASC', 'DESC', 'UNION', 'INTERSECT', 'EXCEPT', 'HAVING'
+    'SHOW', 'TABLES', 'ORDER', 'BY', 'ASC', 'DESC',
+    'UNION', 'INTERSECT', 'EXCEPT', 'HAVING',
+    'LIMIT', 'NULL'
 )
 
 # 2. Reserved words dictionary
@@ -42,7 +44,9 @@ reserved = {
     'except': 'EXCEPT',
     'having': 'HAVING',
     'show': 'SHOW',
-    'tables': 'TABLES'
+    'tables': 'TABLES',
+    'limit': 'LIMIT',
+    'NULL': 'NULL'
 }
 
 # 3. Simple regex rules for operators and delimiters

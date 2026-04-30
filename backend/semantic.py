@@ -56,10 +56,13 @@ class SemanticAnalyzer:
                 if proj == "*":
                     available_columns.add("*")
                 else:
-                    if isinstance(proj, AggregateNode):
-                        available_columns.add(self._get_name(proj.column))
+                    # Unwrap alias if it came from the subquery
+                    expr_to_check = proj.expr if getattr(proj, '__class__', None).__name__ == 'AliasNode' else proj
+                    
+                    if isinstance(expr_to_check, AggregateNode):
+                        available_columns.add(self._get_name(expr_to_check.column))
                     else:
-                        available_columns.add(self._get_name(proj))
+                        available_columns.add(self._get_name(expr_to_check))
         
         elif node.from_table:
             # Standard Table Validation
@@ -86,20 +89,15 @@ class SemanticAnalyzer:
                 if proj == "*":
                     continue
                 
-                # Extract name whether it's a raw ID, IdentifierNode, or Aggregate
-                if isinstance(proj, AggregateNode):
-                    col_name = self._get_name(proj.column)
-                else:
-                    col_name = self._get_name(proj)
+                # Unwrap the alias if it exists
+                expr_to_check = proj.expr if getattr(proj, '__class__', None).__name__ == 'AliasNode' else proj
                 
-                # Check against the available column context
-                if col_name not in available_columns:
-                    # Try a case-insensitive check to provide a helpful hint
-                    suggestions = [c for c in available_columns if c.lower() == col_name.lower()]
-                    error_msg = f"Semantic Error: Column '{col_name}' is not available."
-                    if suggestions:
-                        error_msg += f" Did you mean '{suggestions[0]}'?"
-                    raise ValueError(error_msg)
+                # If it's an aggregate, check the inner column
+                if getattr(expr_to_check, '__class__', None).__name__ == 'AggregateNode':
+                     expr_to_check = expr_to_check.column
+                
+                # Reuse our robust WHERE checker to validate the math expression!
+                self._check_expression(expr_to_check, available_columns)
 
         # 4. Validate WHERE clause (if exists)
         if node.where and "*" not in available_columns:

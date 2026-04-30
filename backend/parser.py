@@ -3,7 +3,8 @@ from lexer import tokens
 from models import (
     SelectNode, InsertNode, CreateTableNode, DropTableNode,
     DeleteNode, UpdateNode, ShowTablesNode,
-    IdentifierNode, LiteralNode, BinaryOpNode, JoinNode, AggregateNode, SetOpNode
+    IdentifierNode, LiteralNode, BinaryOpNode, JoinNode,
+    AggregateNode, SetOpNode, AliasNode
 )
 
 # --- 1. Operator Precedence ---
@@ -36,32 +37,27 @@ def p_show_tables_stmt(p):
     'show_tables_stmt : SHOW TABLES'
     p[0] = ShowTablesNode()
 
-# Use a specific 'base' select to avoid the set_operation loop
 def p_select_statement(p):
-    '''select_statement : SELECT projections FROM from_clause opt_joins opt_where opt_groupby opt_orderby'''
+    '''select_statement : SELECT projections FROM from_clause opt_joins opt_where opt_groupby opt_orderby opt_limit'''
     p[0] = SelectNode(
         projections=p[2], 
         from_table=p[4], 
         joins=p[5], 
         where=p[6], 
         group_by=p[7], 
-        order_by=p[8]
+        order_by=p[8],
+        limit=p[9]
     )
 
 def p_from_clause(p):
     '''from_clause : IDENTIFIER
                    | LPAREN select_statement RPAREN
                    | LPAREN select_statement RPAREN AS IDENTIFIER'''
-    
     if len(p) == 2:
-        # Simple table name (e.g., FROM Students)
         p[0] = p[1]
     elif len(p) == 4:
-        # Subquery without an alias
         p[0] = p[2]
     elif len(p) == 6:
-        # Subquery with an alias (e.g., FROM (SELECT...) AS top_students)
-        # We pass the parsed SelectNode forward. (You can also save the alias if your planner needs it!)
         p[0] = p[2]
         
 def p_set_operation(p):
@@ -70,11 +66,11 @@ def p_set_operation(p):
                      | select_statement EXCEPT select_statement'''
     p[0] = SetOpNode(p[1], p[2], p[3])
 
-# --- 3. Clauses (WHERE, GROUP BY, ORDER BY) ---
+# --- 3. Clauses (WHERE, GROUP BY, ORDER BY, LIMIT) ---
 def p_opt_orderby(p):
     '''opt_orderby : ORDER BY IDENTIFIER opt_asc_desc
                    | empty'''
-    if len(p) == 5: # FIXED: Only run if all 4 tokens exist (plus p[0])
+    if len(p) == 5:
         p[0] = {"column": p[3], "ascending": p[4]}
     else:
         p[0] = None
@@ -83,27 +79,43 @@ def p_opt_asc_desc(p):
     '''opt_asc_desc : ASC
                     | DESC
                     | empty'''
-    if p[1] and p[1].upper() == 'DESC': # FIXED: Safely check if p[1] exists
+    if len(p) > 1 and p[1] and p[1].upper() == 'DESC':
         p[0] = False
     else:
         p[0] = True 
 
 def p_opt_groupby(p):
-    '''opt_groupby : GROUP BY qualified_id opt_having
+    '''opt_groupby : GROUP BY group_list opt_having
                    | empty'''
-    if len(p) == 5: # FIXED
-        p[0] = {'column': p[3], 'having': p[4]}
+    if len(p) == 5:
+        p[0] = {'columns': p[3], 'having': p[4]}
     else:
         p[0] = None
 
+def p_group_list(p):
+    '''group_list : qualified_id
+                  | group_list COMMA qualified_id'''
+    if len(p) == 2:
+        p[0] = [p[1]]
+    else:
+        p[0] = p[1] + [p[3]]
+        
 def p_opt_having(p):
     '''opt_having : HAVING expression
                   | empty'''
-    if len(p) == 3: # FIXED
+    if len(p) == 3:
         p[0] = p[2]
     else:
         p[0] = None
 
+def p_opt_limit(p):
+    '''opt_limit : LIMIT NUMBER
+                 | empty'''
+    if len(p) == 3:
+        p[0] = int(p[2])
+    else:
+        p[0] = None
+        
 # --- 4. Projections & Aggregates ---
 def p_projections_all(p):
     'projections : STAR'
@@ -118,9 +130,12 @@ def p_projections_list(p):
         p[0] = p[1] + [p[3]]
 
 def p_projection_item(p):
-    '''projection_item : qualified_id
-                       | aggregate_func'''
-    p[0] = p[1]
+    '''projection_item : expression
+                       | expression AS IDENTIFIER'''
+    if len(p) == 4:
+        p[0] = AliasNode(expr=p[1], alias=p[3])
+    else:
+        p[0] = p[1]
 
 def p_aggregate_func(p):
     '''aggregate_func : SUM LPAREN qualified_id RPAREN
@@ -130,7 +145,7 @@ def p_aggregate_func(p):
                       | MAX LPAREN qualified_id RPAREN'''
     p[0] = AggregateNode(func=p[1], column=p[3])
 
-# --- 5. JOIN Logic ---
+# --- 5. JOIN Logic (STRICT VERSION) ---
 def p_opt_joins(p):
     '''opt_joins : join_list
                  | empty'''
@@ -145,22 +160,28 @@ def p_join_list(p):
         p[0] = p[1] + [p[2]]
 
 def p_join_item(p):
-    '''join_item : join_type JOIN IDENTIFIER ON expression'''
-    p[0] = JoinNode(join_type=p[1], table=p[3], on_condition=p[5])
+    '''join_item : join_type JOIN IDENTIFIER ON expression
+                 | CROSS JOIN IDENTIFIER'''
+    if len(p) == 6:
+        # Strict: Standard JOINs REQUIRE the ON condition
+        p[0] = JoinNode(join_type=p[1], table=p[3], on_condition=p[5])
+    else:
+        # Strict: Cartesian products REQUIRE the CROSS JOIN keyword
+        p[0] = JoinNode(join_type="CROSS", table=p[3], on_condition=None)
 
 def p_join_type(p):
     '''join_type : INNER
                  | LEFT
                  | RIGHT
                  | FULL
-                 | CROSS
                  | empty'''
-    p[0] = p[1] if p[1] else "INNER"
+    p[0] = p[1].upper() if (len(p) > 1 and p[1]) else "INNER"
 
+# --- 6. Expressions ---
 def p_opt_where(p):
     '''opt_where : WHERE expression
                  | empty'''
-    if len(p) == 3: # FIXED
+    if len(p) == 3:
         p[0] = p[2]
     else:
         p[0] = None
@@ -182,10 +203,12 @@ def p_expression_binop(p):
 
 def p_expression_term(p):
     '''expression : qualified_id
+                  | aggregate_func
                   | NUMBER
                   | STRING
                   | TRUE
-                  | FALSE'''
+                  | FALSE
+                  | NULL'''  # <-- ADD NULL HERE
     if p.slice[1].type == 'NUMBER':
         p[0] = LiteralNode(p[1], 'NUMBER')
     elif p.slice[1].type == 'STRING':
@@ -194,9 +217,15 @@ def p_expression_term(p):
         p[0] = LiteralNode(True, 'BOOLEAN')
     elif p.slice[1].type == 'FALSE':
         p[0] = LiteralNode(False, 'BOOLEAN')
+    elif p.slice[1].type == 'NULL':   # <-- ADD THIS BLOCK
+        p[0] = LiteralNode(None, 'NULL')
     else:
         p[0] = p[1]
 
+def p_expression_group(p):
+    'expression : LPAREN expression RPAREN'
+    p[0] = p[2]
+    
 def p_qualified_id(p):
     '''qualified_id : IDENTIFIER DOT IDENTIFIER
                     | IDENTIFIER'''
@@ -228,10 +257,20 @@ def p_data_type(p):
                  | FLOAT'''
     p[0] = p[1]
 
+# Replace the old p_insert_stmt with this:
 def p_insert_stmt(p):
-    'insert_stmt : INSERT INTO IDENTIFIER VALUES LPAREN value_list RPAREN'
-    p[0] = InsertNode(table=p[3], values=p[6])
-
+    'insert_stmt : INSERT INTO IDENTIFIER VALUES tuple_list'
+    p[0] = InsertNode(table=p[3], values=p[5])
+    
+# Add this new rule to handle multiple (val1, val2), (val3, val4)
+def p_tuple_list(p):
+    '''tuple_list : LPAREN value_list RPAREN
+                  | tuple_list COMMA LPAREN value_list RPAREN'''
+    if len(p) == 4:
+        p[0] = [p[2]] # First tuple
+    else:
+        p[0] = p[1] + [p[4]] # Append subsequent tuples
+        
 def p_value_list(p):
     '''value_list : expression
                   | value_list COMMA expression'''
